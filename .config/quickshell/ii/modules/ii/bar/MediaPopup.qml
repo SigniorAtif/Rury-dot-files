@@ -9,6 +9,7 @@ import QtQuick.Effects
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
+import Quickshell.Widgets
 import Quickshell.Services.Mpris
 
 // Media popout: spinning cover inside a live radial visualizer, track info,
@@ -54,14 +55,39 @@ StyledPopup {
     }
 
     // Visualizer (only while visible and playing)
-    property list<real> bars: []
+    // Plain JS array: no list<real> conversion per frame. cava does the
+    // smoothing, so bars bind straight to it (no per-bar Behavior restarting
+    // every frame, which is what made the ring stutter and lag behind audio).
+    property var bars: []
     property Process cavaProc: Process {
         running: root.shownInShared && root.playing
-        command: ["cava", "-p", `${FileUtils.trimFileProtocol(Directories.scriptPath)}/cava/raw_output_config.txt`]
+        command: ["cava", "-p", `${FileUtils.trimFileProtocol(Directories.scriptPath)}/cava/radial_config.txt`]
         onRunningChanged: if (!running) root.bars = []
         stdout: SplitParser {
             onRead: data => {
-                root.bars = data.split(";").map(p => parseFloat(p)).filter(p => !isNaN(p));
+                const parts = data.split(";");
+                const out = new Array(parts.length);
+                let n = 0;
+                for (let i = 0; i < parts.length; i++) {
+                    const v = parseInt(parts[i]);
+                    if (!isNaN(v)) out[n++] = v / 1000;
+                }
+                out.length = n;
+                root.bars = out;
+            }
+        }
+    }
+
+    // TEMP perf probe: logs popout frame rate while shown
+    property FrameAnimation fpsProbe: FrameAnimation {
+        property int frames: 0
+        property real acc: 0
+        running: root.shownInShared
+        onTriggered: {
+            frames++; acc += frameTime;
+            if (acc >= 2) {
+                console.log(`[MediaPopup] fps ${(frames / acc).toFixed(1)} playing=${root.playing} bars=${root.bars.length}`);
+                frames = 0; acc = 0;
             }
         }
     }
@@ -119,11 +145,14 @@ StyledPopup {
             fillMode: Image.PreserveAspectCrop
             asynchronous: true
             visible: false
+            sourceSize.width: 96
+            sourceSize.height: 96
         }
         MultiEffect {
             anchors.fill: parent
             source: backdrop
             visible: root.artSource.length > 0
+            layer.enabled: true // blur once, reuse the texture every frame
             blurEnabled: true
             blur: 1
             blurMax: 64
@@ -155,42 +184,34 @@ StyledPopup {
                         width: 3
                         height: disc.width
                         rotation: index * 360 / disc.barCount
-                        // mirror the spectrum so the ring is symmetric
-                        readonly property int src: {
-                            const half = disc.barCount / 2;
-                            const i = index < half ? index : disc.barCount - 1 - index;
-                            return Math.floor(i * Math.max(root.bars.length, 1) / half);
-                        }
-                        readonly property real level: Math.min(1, (root.bars[src] ?? 0) / 1000)
+                        // mirror the 24 cava bands so the ring is symmetric
+                        readonly property int src: index < disc.barCount / 2 ? index : disc.barCount - 1 - index
+                        readonly property real level: Math.min(1, root.bars[src] ?? 0)
+                        // Fixed geometry, only a scale matrix changes per frame
+                        // (resizing rounded rects re-tessellates them every frame)
                         Rectangle {
+                            readonly property real maxLen: (disc.width - disc.coverSize) / 2 - 8
                             anchors.horizontalCenter: parent.horizontalCenter
                             y: (disc.width - disc.coverSize) / 2 - 4 - height
                             width: 3
+                            height: maxLen
                             radius: 1.5
-                            height: 3 + barSlot.level * ((disc.width - disc.coverSize) / 2 - 8)
                             color: root.scheme.colPrimary
-                            opacity: 0.45 + barSlot.level * 0.55
-                            Behavior on height {
-                                NumberAnimation { duration: 70 }
+                            transform: Scale {
+                                origin.y: parent.height
+                                yScale: (3 + barSlot.level * (parent.maxLen - 3)) / parent.maxLen
                             }
                         }
                     }
                 }
 
-                Rectangle { // Cover
+                ClippingRectangle { // Cover (cheap rounded clip, no offscreen layer)
                     id: cover
                     anchors.centerIn: parent
                     width: disc.coverSize
                     height: disc.coverSize
                     radius: width / 2
                     color: root.scheme.colSecondaryContainer
-                    layer.enabled: true
-                    layer.effect: MultiEffect {
-                        maskEnabled: true
-                        maskSource: coverMask
-                        maskThresholdMin: 0.5
-                        maskSpreadAtMin: 1
-                    }
 
                     MaterialSymbol {
                         anchors.centerIn: parent
@@ -208,22 +229,15 @@ StyledPopup {
                         sourceSize.height: 200
                     }
 
-                    RotationAnimator on rotation {
+                    // Plain animation (not an Animator): pauses in place instead of
+                    // snapping, and actually renders inside the popout
+                    NumberAnimation on rotation {
                         from: 0
                         to: 360
                         duration: 14000
                         loops: Animation.Infinite
-                        running: root.playing && root.shownInShared
-                    }
-                }
-                Item {
-                    id: coverMask
-                    anchors.fill: cover
-                    visible: false
-                    layer.enabled: true
-                    Rectangle {
-                        anchors.fill: parent
-                        radius: width / 2
+                        running: root.shownInShared
+                        paused: running && !root.playing
                     }
                 }
                 Rectangle { // Spindle
@@ -286,6 +300,7 @@ StyledPopup {
                             trackColor: root.scheme.colSecondaryContainer
                             handleColor: root.scheme.colPrimary
                             usePercentTooltip: false
+                            animateWave: root.playing && root.shownInShared
                             value: root.player?.length > 0 ? root.player.position / root.player.length : 0
                             onMoved: root.player.position = value * root.player.length
                         }
@@ -297,6 +312,7 @@ StyledPopup {
                         active: !(root.player?.canSeek ?? false)
                         sourceComponent: StyledProgressBar {
                             wavy: root.playing
+                            animateWave: root.shownInShared
                             highlightColor: root.scheme.colPrimary
                             trackColor: root.scheme.colSecondaryContainer
                             value: root.player?.length > 0 ? root.player.position / root.player.length : 0

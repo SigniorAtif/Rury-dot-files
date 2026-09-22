@@ -85,7 +85,9 @@ PanelWindow {
         left: true
         right: true
     }
-    implicitHeight: Math.min(screen?.height ?? 1080, 900)
+    // Only as tall as the biggest popout needs: the whole surface is redrawn
+    // every animated frame, so a smaller window is much cheaper.
+    implicitHeight: Math.min(screen?.height ?? 1080, barBottom + 560)
 
     mask: Region {
         item: hitbox

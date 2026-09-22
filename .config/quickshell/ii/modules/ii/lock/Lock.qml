@@ -13,34 +13,24 @@ LockScreen {
 
     // Monitor name -> workspace id to restore on unlock (set when locking)
     property var savedWorkspaces: ({})
-    property bool restored: true
-
-    // Restore right away so windows slide back in while the lock fades out
-    onUnlockStarted: {
-        restoreTimer.stop();
-        root.restoreWorkspaces();
-    }
-    function restoreWorkspaces() {
-        if (root.restored) return;
-        root.restored = true;
-        var batch = ""
-        for (var j = 0; j < Quickshell.screens.length; ++j) {
-            var monName = Quickshell.screens[j].name
-            var wsId = root.savedWorkspaces[monName]
-            if (wsId !== undefined) {
-                batch += `hyprctl dispatch 'hl.dsp.focus({monitor="${monName}"})'; hyprctl dispatch 'hl.dsp.focus({workspace=${wsId}})';`
-            }
-        }
-        if (batch.length > 0) {
-            Quickshell.execDetached(["bash", "-c", batch])
-        }
-    }
 
     Timer {
         id: restoreTimer
         interval: 150
         repeat: false
-        onTriggered: root.restoreWorkspaces() // Fallback for unlocks that skip the staged exit
+        onTriggered: {
+            var batch = ""
+            for (var j = 0; j < Quickshell.screens.length; ++j) {
+                var monName = Quickshell.screens[j].name
+                var wsId = root.savedWorkspaces[monName]
+                if (wsId !== undefined) {
+                    batch += `hyprctl dispatch 'hl.dsp.focus({monitor="${monName}"})'; hyprctl dispatch 'hl.dsp.focus({workspace=${wsId}})';`
+                }
+            }
+            if (batch.length > 0) {
+                Quickshell.execDetached(["bash", "-c", batch])
+            }
+        }
     }
 
     lockSurface: LockSurface {
@@ -54,7 +44,7 @@ LockScreen {
             if (GlobalStates.screenLocked) {
                 // Lock: save workspace per monitor and move all to temp workspace in one batch
                 var next = {}
-                var batch = ""
+                var batch = "keyword animation workspaces,1,7,menu_decel,slidevert; "
                 for (var i = 0; i < Quickshell.screens.length; ++i) {
                     var mon = Quickshell.screens[i].name
                     var mData = HyprlandData.monitors.find(m => m.name === mon)
@@ -66,7 +56,6 @@ LockScreen {
                     batch += `hyprctl dispatch 'hl.dsp.focus({monitor="${mon}"})'; hyprctl dispatch 'hl.dsp.focus({workspace=${2147483647 - ws}})';`
                 }
                 root.savedWorkspaces = next
-                root.restored = false
                 Quickshell.execDetached(["bash", "-c", batch])
             } else {
                 restoreTimer.start()
