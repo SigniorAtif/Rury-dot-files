@@ -256,8 +256,19 @@ Variants {
                 readonly property real wallpaperTotalOffsetX: wallpaper.x - baseWallpaperOffsetX
                 readonly property real wallpaperTotalOffsetY: wallpaper.y - baseWallpaperOffsetY
                 readonly property bool locked: GlobalStates.screenLocked
-                x: wallpaperTotalOffsetX * parallaxFactor * !locked
-                y: wallpaperTotalOffsetY * parallaxFactor * !locked
+                // Locking drops the parallax offset so the clock can centre on
+                // the real screen. Animating x/y for that would also animate
+                // the workspace parallax, which is already an animation on the
+                // wallpaper's own x -- the offset would then lag behind the
+                // wallpaper instead of moving with it. Fading the multiplier
+                // keeps the workspace binding instantaneous and only smooths
+                // the lock transition.
+                property real parallaxFade: locked ? 0 : 1
+                Behavior on parallaxFade {
+                    animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
+                }
+                x: wallpaperTotalOffsetX * parallaxFactor * parallaxFade
+                y: wallpaperTotalOffsetY * parallaxFactor * parallaxFade
 
                 transitions: Transition {
                     PropertyAnimation {
