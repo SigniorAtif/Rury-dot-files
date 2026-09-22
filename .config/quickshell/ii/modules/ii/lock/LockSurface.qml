@@ -38,9 +38,25 @@ MouseArea {
         forceFieldFocus();
     }
 
+    // Toolbar appearing animation
+    property real toolbarScale: 0.9
+    property real toolbarOpacity: 0
+    Behavior on toolbarScale {
+        NumberAnimation {
+            duration: Appearance.animation.elementMove.duration
+            easing.type: Appearance.animation.elementMove.type
+            easing.bezierCurve: Appearance.animationCurves.expressiveFastSpatial
+        }
+    }
+    Behavior on toolbarOpacity {
+        animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
+    }
+
     // Init
     Component.onCompleted: {
         forceFieldFocus();
+        toolbarScale = 1;
+        toolbarOpacity = 1;
     }
 
     // Key presses
@@ -91,10 +107,8 @@ MouseArea {
     // Main toolbar: password box
     Toolbar {
         id: mainIsland
-        // All three islands rise together and drop together: splitting them
-        // sideways made the side ones look like they came off the bar
         property OpenReveal reveal: OpenReveal { target: mainIsland; open: !GlobalStates.screenUnlocking;
-            fromY: 56; fromScale: 0.92; animateOut: true; speed: 1.15; toY: 130; toScale: 1 }
+            fromY: 50; fromScale: 0.9; animateOut: true; speed: 0.8; toY: 120; toScale: 1 }
         anchors {
             horizontalCenter: parent.horizontalCenter
             bottom: parent.bottom
@@ -103,6 +117,9 @@ MouseArea {
         Behavior on anchors.bottomMargin {
             animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
         }
+
+        scale: root.toolbarScale
+        opacity: root.toolbarOpacity
 
         // Fingerprint
         Loader {
@@ -225,13 +242,16 @@ MouseArea {
     Toolbar {
         id: leftIsland
         property OpenReveal reveal: OpenReveal { target: leftIsland; open: !GlobalStates.screenUnlocking;
-            fromY: 56; fromScale: 0.92; delay: 55; animateOut: true; speed: 1.15; toY: 130; toScale: 1 }
+            fromX: 60; fromY: 0; delay: 90; animateOut: true; speed: 0.8; toX: -120; toY: 90; toScale: 1 }
         anchors {
             right: mainIsland.left
             top: mainIsland.top
             bottom: mainIsland.bottom
             rightMargin: 10
         }
+        scale: root.toolbarScale
+        opacity: root.toolbarOpacity
+
         // Username
         IconAndTextPair {
             Layout.leftMargin: 8
@@ -284,13 +304,16 @@ MouseArea {
     Toolbar {
         id: rightIsland
         property OpenReveal reveal: OpenReveal { target: rightIsland; open: !GlobalStates.screenUnlocking;
-            fromY: 56; fromScale: 0.92; delay: 55; animateOut: true; speed: 1.15; toY: 130; toScale: 1 }
+            fromX: -60; fromY: 0; delay: 90; animateOut: true; speed: 0.8; toX: 120; toY: 90; toScale: 1 }
         anchors {
             left: mainIsland.right
             top: mainIsland.top
             bottom: mainIsland.bottom
             leftMargin: 10
         }
+
+        scale: root.toolbarScale
+        opacity: root.toolbarOpacity
 
         IconAndTextPair {
             visible: Battery.available

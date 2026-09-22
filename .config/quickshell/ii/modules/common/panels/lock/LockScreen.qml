@@ -19,7 +19,7 @@ Scope {
     // (see unlockStarted), and only then does the session lock surface go away.
     // Unlocking in one step showed a frame of the wrong workspace.
     signal unlockStarted()
-    readonly property int exitDuration: 200
+    readonly property int exitDuration: 260
 
     Timer {
         id: exitTimer

@@ -61,14 +61,13 @@ Variants {
         // Colors
         property bool shouldBlur: (GlobalStates.screenLocked && Config.options.lock.blur.enable)
         // 0 = sharp desktop wallpaper, 1 = blurred + dimmed lock backdrop.
-        // Drives the blur, its zoom and the parallax offset together, so the
-        // whole backdrop moves as one instead of snapping then easing.
-        property real lockProgress: GlobalStates.screenLocked ? 1 : 0
-        Behavior on lockProgress {
+        // Animated so locking/unlocking melts instead of snapping.
+        property real lockBlur: GlobalStates.screenLocked ? 1 : 0
+        Behavior on lockBlur {
             NumberAnimation {
-                duration: 320
+                duration: 400
                 easing.type: Easing.BezierSpline
-                easing.bezierCurve: Appearance.animationCurves.emphasized
+                easing.bezierCurve: Appearance.animationCurves.expressiveDefaultSpatial
             }
         }
         property color dominantColor: Appearance.colors.colPrimary // Default, to be changed
@@ -213,10 +212,10 @@ Variants {
 
             Loader {
                 id: blurLoader
-                active: Config.options.lock.blur.enable && bgRoot.lockProgress > 0
+                active: Config.options.lock.blur.enable && bgRoot.lockBlur > 0
                 anchors.fill: wallpaper
-                opacity: bgRoot.lockProgress
-                scale: 1 + (Config.options.lock.blur.extraZoom - 1) * bgRoot.lockProgress
+                opacity: bgRoot.lockBlur
+                scale: 1 + (Config.options.lock.blur.extraZoom - 1) * bgRoot.lockBlur
                 sourceComponent: GaussianBlur {
                     // Radius and samples are constant: animating them recompiles
                     // the shader every frame. The fade does the work instead.
@@ -243,11 +242,9 @@ Variants {
                 readonly property real baseWallpaperOffsetY: (bgRoot.screen.height - wallpaper.height) / 2
                 readonly property real wallpaperTotalOffsetX: wallpaper.x - baseWallpaperOffsetX
                 readonly property real wallpaperTotalOffsetY: wallpaper.y - baseWallpaperOffsetY
-                // Parallax unwinds along with the blur; flipping it on `locked`
-                // made the clock jump sideways before its own move started
-                readonly property real unlocked: 1 - bgRoot.lockProgress
-                x: wallpaperTotalOffsetX * parallaxFactor * unlocked
-                y: wallpaperTotalOffsetY * parallaxFactor * unlocked
+                readonly property bool locked: GlobalStates.screenLocked
+                x: wallpaperTotalOffsetX * parallaxFactor * !locked
+                y: wallpaperTotalOffsetY * parallaxFactor * !locked
 
                 transitions: Transition {
                     PropertyAnimation {
