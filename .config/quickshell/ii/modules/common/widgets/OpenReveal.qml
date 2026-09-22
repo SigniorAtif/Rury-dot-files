@@ -27,6 +27,7 @@ QtObject {
 
     function reset() {
         exitAnim.stop();
+        if (!target) return; // Target torn down (e.g. popup reloaded)
         target.opacity = 0;
         translate.x = fromX;
         translate.y = fromY;
@@ -48,6 +49,7 @@ QtObject {
     onOpenChanged: open ? playIn() : playOut()
 
     Component.onCompleted: {
+        if (!target) return;
         let transforms = [];
         for (let i = 0; i < target.transform.length; i++)
             transforms.push(target.transform[i]);

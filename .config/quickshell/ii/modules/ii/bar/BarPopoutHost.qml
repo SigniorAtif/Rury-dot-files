@@ -38,6 +38,17 @@ PanelWindow {
     property real targetCenterX: width / 2
     readonly property real targetW: popup ? popup.page.implicitWidth : panel.lastW
     readonly property real targetH: popup ? popup.page.implicitHeight : 0
+    // Center clamped with the *target* width so edge clamping never lags behind
+    readonly property real targetCx: Math.max(edgeMargin + targetW / 2,
+        Math.min(width - edgeMargin - targetW / 2, targetCenterX))
+
+    // Set imperatively so animation params switch before the targets move
+    property bool shown: false
+    property bool closing: false
+    onOpenChanged: {
+        closing = !open;
+        shown = open;
+    }
 
     function updateTargetX() {
         if (!popup) return;
@@ -93,26 +104,30 @@ PanelWindow {
         property real lastW: 200
         readonly property bool expanded: height > 1
 
-        width: Math.max(root.targetW, 1)
-        height: Math.max(root.targetH, 0)
-        x: Math.max(root.edgeMargin, Math.min(root.width - width - root.edgeMargin, root.targetCenterX - width / 2))
+        // Center, width and height share one curve so a swap moves and
+        // resizes in a single motion. x is derived, never animated on its own.
+        property real cx: root.targetCx
+        width: Math.max(root.shown ? root.targetW : lastW * 0.5, 1)
+        height: root.shown ? Math.max(root.targetH, 0) : 0
+        x: cx - width / 2
         y: root.barBottom
-        onWidthChanged: if (root.popup) lastW = width
+        onWidthChanged: if (root.popup && root.shown) lastW = root.targetW
 
-        Behavior on x {
+        component MorphAnim: NumberAnimation {
+            duration: root.closing ? 340 : 420
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: !root.closing ? Appearance.animationCurves.expressiveDefaultSpatial
+                : Appearance.animationCurves.emphasized
+        }
+        Behavior on cx {
             enabled: panel.expanded
-            animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
+            MorphAnim {}
         }
         Behavior on width {
-            enabled: panel.expanded
-            animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
+            MorphAnim {}
         }
         Behavior on height {
-            NumberAnimation {
-                duration: root.open ? Appearance.animation.elementMove.duration : 260
-                easing.type: Easing.BezierSpline
-                easing.bezierCurve: root.open ? Appearance.animationCurves.expressiveDefaultSpatial : Appearance.animationCurves.emphasizedAccel
-            }
+            MorphAnim {}
         }
     }
 
