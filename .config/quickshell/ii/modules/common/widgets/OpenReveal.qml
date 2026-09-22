@@ -15,7 +15,9 @@ QtObject {
     property real fromY: 16
     property real fromScale: 0.97
     property bool animateOut: false
+    property real toX: 0
     property real toY: -8
+    property real toScale: fromScale
     property real speed: 1 // >1 = faster
     readonly property bool running: enterAnim.running || exitAnim.running
 
@@ -101,6 +103,14 @@ QtObject {
         }
         NumberAnimation {
             target: root.translate
+            property: "x"
+            to: root.toX
+            duration: Appearance.animation.elementMoveExit.duration / root.speed
+            easing.type: Appearance.animation.elementMoveExit.type
+            easing.bezierCurve: Appearance.animation.elementMoveExit.bezierCurve
+        }
+        NumberAnimation {
+            target: root.translate
             property: "y"
             to: root.toY
             duration: Appearance.animation.elementMoveExit.duration / root.speed
@@ -110,7 +120,7 @@ QtObject {
         NumberAnimation {
             target: root.scale
             properties: "xScale,yScale"
-            to: root.fromScale
+            to: root.toScale
             duration: Appearance.animation.elementMoveExit.duration / root.speed
             easing.type: Appearance.animation.elementMoveExit.type
             easing.bezierCurve: Appearance.animation.elementMoveExit.bezierCurve

@@ -22,8 +22,27 @@ AbstractWidget {
     property real targetY : Math.max(0, Math.min(configEntry.y, scaledScreenHeight - height))
     x: targetX
     y: targetY
+    // The unlock exit counts as unlocked: widgets come back while the backdrop
+    // un-blurs, not once the lock surface has gone. Held back a beat so the
+    // backdrop clears first and the clock is still moving when the bar slides in.
+    readonly property bool lockActive: GlobalStates.screenLocked && !GlobalStates.screenUnlocking
+    property int unlockLag: 180
+    property bool lockShown: GlobalStates.screenLocked
+    onLockActiveChanged: {
+        if (lockActive) { // Locking is immediate; only the exit lingers
+            unlockLagTimer.stop();
+            lockShown = true;
+        } else {
+            unlockLagTimer.restart();
+        }
+    }
+    Timer {
+        id: unlockLagTimer
+        interval: root.unlockLag
+        onTriggered: root.lockShown = false
+    }
     visible: opacity > 0
-    opacity: (GlobalStates.screenLocked && !visibleWhenLocked) ? 0 : 1
+    opacity: (lockShown && !visibleWhenLocked) ? 0 : 1
     Behavior on opacity {
         animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
     }
@@ -44,7 +63,7 @@ AbstractWidget {
     property color dominantColor: Appearance.colors.colPrimary
     property bool dominantColorIsDark: dominantColor.hslLightness < 0.5
     property color colText: {
-        const onNormalBackground = (GlobalStates.screenLocked && Config.options.lock.blur.enable)
+        const onNormalBackground = (root.lockShown && Config.options.lock.blur.enable)
         const adaptiveColor = ColorUtils.colorWithLightness(Appearance.colors.colPrimary, (dominantColorIsDark ? 0.8 : 0.12))
         return onNormalBackground ? Appearance.colors.colOnLayer0 : adaptiveColor;
     }
@@ -77,6 +96,9 @@ AbstractWidget {
         id: placementSizeTimer
         interval: 400
         onTriggered: {
+            // The lock screen resizes widgets (the "Locked" chip), and replacing
+            // them for that means a second, pointless move once they've landed
+            if (GlobalStates.screenLocked || GlobalStates.screenUnlocking) return;
             // Ignore tiny size changes (e.g. digits ticking) to avoid jitter
             if (Math.abs(root.width - root.lastPlacedWidth) < 24 && Math.abs(root.height - root.lastPlacedHeight) < 24) return;
             root.refreshPlacementIfNeeded();

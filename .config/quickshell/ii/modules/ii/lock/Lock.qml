@@ -14,22 +14,27 @@ LockScreen {
     // Monitor name -> workspace id to restore on unlock (set when locking)
     property var savedWorkspaces: ({})
 
+    // Hyprland slides the workspace back in (the slidevert keyword set on lock).
+    // That slide IS the reveal, so none of it may happen behind the lock
+    // surface: start it during the exit and it is already part way through by
+    // the time you first see it, which reads as a snap. Fire it a frame after
+    // the surface unmaps instead, so you watch the empty workspace slide up
+    // into the real one -- what it did before the staged exit existed.
+    property int restoreDelay: 8
     Timer {
         id: restoreTimer
-        interval: 150
-        repeat: false
-        onTriggered: {
-            var batch = ""
-            for (var j = 0; j < Quickshell.screens.length; ++j) {
-                var monName = Quickshell.screens[j].name
-                var wsId = root.savedWorkspaces[monName]
-                if (wsId !== undefined) {
-                    batch += `hyprctl dispatch 'hl.dsp.focus({monitor="${monName}"})'; hyprctl dispatch 'hl.dsp.focus({workspace=${wsId}})';`
-                }
-            }
-            if (batch.length > 0) {
-                Quickshell.execDetached(["bash", "-c", batch])
-            }
+        interval: root.restoreDelay
+        onTriggered: root.restoreWorkspaces()
+    }
+    // Over the existing Hyprland socket rather than spawning bash + hyprctl:
+    // a fork/exec storm on the first frames of the reveal costs frames.
+    function restoreWorkspaces() {
+        for (var j = 0; j < Quickshell.screens.length; ++j) {
+            var monName = Quickshell.screens[j].name
+            var wsId = root.savedWorkspaces[monName]
+            if (wsId === undefined) continue;
+            Hyprland.dispatch(`hl.dsp.focus({monitor="${monName}"})`)
+            Hyprland.dispatch(`hl.dsp.focus({workspace=${wsId}})`)
         }
     }
 
@@ -42,6 +47,7 @@ LockScreen {
         target: GlobalStates
         function onScreenLockedChanged() {
             if (GlobalStates.screenLocked) {
+                restoreTimer.stop(); // Re-locked mid-exit
                 // Lock: save workspace per monitor and move all to temp workspace in one batch
                 var next = {}
                 var batch = "keyword animation workspaces,1,7,menu_decel,slidevert; "
@@ -58,7 +64,7 @@ LockScreen {
                 root.savedWorkspaces = next
                 Quickshell.execDetached(["bash", "-c", batch])
             } else {
-                restoreTimer.start()
+                restoreTimer.restart() // Surface is gone; now let the slide play
             }
         }
     }

@@ -14,6 +14,30 @@ Scope {
 
     required property Component lockSurface
     property alias context: lockContext
+
+    // Staged unlock: the lock UI leaves, whatever's underneath gets put back
+    // (see unlockStarted), and only then does the session lock surface go away.
+    // Unlocking in one step showed a frame of the wrong workspace.
+    signal unlockStarted()
+    // Long enough for the backdrop's blur fade (400ms, Background.qml lockBlur)
+    // to finish, since that now runs alongside the lock UI leaving
+    readonly property int exitDuration: 400
+
+    Timer {
+        id: exitTimer
+        interval: root.exitDuration
+        onTriggered: root.finishUnlock()
+    }
+    function finishUnlock() {
+        // Unlock first: a failure below must never stand between you and your session
+        GlobalStates.screenLocked = false;
+        GlobalStates.screenUnlocking = false;
+        lockContext.reset();
+        if (lockContext.alsoInhibitIdle) {
+            lockContext.alsoInhibitIdle = false;
+            Idle.toggleInhibit(true);
+        }
+    }
     property Component sessionLockSurface: WlSessionLockSurface {
         id: sessionLockSurface
         color: "transparent"
@@ -52,6 +76,8 @@ Scope {
             target: GlobalStates
             function onScreenLockedChanged() {
                 if (GlobalStates.screenLocked) {
+                    GlobalStates.screenUnlocking = false; // Locked again mid-exit
+                    exitTimer.stop();
                     lockContext.reset();
                     lockContext.tryFingerUnlock();
                 }
@@ -68,21 +94,15 @@ Scope {
                 return;
             }
 
+            if (GlobalStates.screenUnlocking) return; // Already on the way out
+
             // Unlock the keyring if configured to do so
             if (Config.options.lock.security.unlockKeyring) root.unlockKeyring(); // Async
 
-            // Unlock the screen before exiting, or the compositor will display a
-            // fallback lock you can't interact with.
-            GlobalStates.screenLocked = false;
-
-            // Reset
-            lockContext.reset();
-
-            // Post-unlock actions
-            if (lockContext.alsoInhibitIdle) {
-                lockContext.alsoInhibitIdle = false;
-                Idle.toggleInhibit(true);
-            }
+            // Play the exit while the surface still covers the screen
+            GlobalStates.screenUnlocking = true;
+            root.unlockStarted();
+            exitTimer.restart();
         }
     }
 
