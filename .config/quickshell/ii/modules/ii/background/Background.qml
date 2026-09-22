@@ -67,6 +67,7 @@ Variants {
         property real lockBlur: (GlobalStates.screenLocked && !GlobalStates.screenUnlocking) ? 1 : 0
         Behavior on lockBlur {
             NumberAnimation {
+                id: lockBlurAnim
                 duration: 400
                 easing.type: Easing.BezierSpline
                 easing.bezierCurve: Appearance.animationCurves.expressiveDefaultSpatial
@@ -86,9 +87,12 @@ Variants {
         // Layer props
         screen: modelData
         exclusionMode: ExclusionMode.Ignore
-        // Drops back under the windows the moment the lock surface unmaps; the
-        // blur is still fading at that point, which is what carries the reveal.
-        WlrLayershell.layer: GlobalStates.screenLocked ? WlrLayer.Overlay : WlrLayer.Bottom
+        // Stays under the windows for as long as the backdrop is still blurring,
+        // so locking reads as the windows sliding away over a wallpaper that is
+        // melting rather than one frame where everything is swapped for the blur.
+        // Rises to Overlay once that settles, and drops back the moment the
+        // unlock starts unwinding it.
+        WlrLayershell.layer: (GlobalStates.screenLocked && !lockBlurAnim.running) ? WlrLayer.Overlay : WlrLayer.Bottom
         // WlrLayershell.layer: WlrLayer.Bottom
         WlrLayershell.namespace: "quickshell:background"
         anchors {

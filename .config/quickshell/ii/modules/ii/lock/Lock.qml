@@ -14,14 +14,16 @@ LockScreen {
     // Monitor name -> workspace id to restore on unlock (set when locking)
     property var savedWorkspaces: ({})
 
-    // Hyprland slides the workspace back in (see the slidevert keyword set on
-    // lock). That slide is part of the reveal, so it has to start just before
-    // the lock surface unmaps -- restoring at the start of the exit meant it
-    // finished in secret and the windows simply appeared.
-    property int restoreLead: 80
+    // Hyprland slides the workspace back in (the slidevert keyword set on lock).
+    // That slide IS the reveal, so none of it may happen behind the lock
+    // surface: start it during the exit and it is already part way through by
+    // the time you first see it, which reads as a snap. Fire it a frame after
+    // the surface unmaps instead, so you watch the empty workspace slide up
+    // into the real one -- what it did before the staged exit existed.
+    property int restoreDelay: 16
     Timer {
         id: restoreTimer
-        interval: Math.max(0, root.exitDuration - root.restoreLead)
+        interval: root.restoreDelay
         onTriggered: root.restoreWorkspaces()
     }
     // Over the existing Hyprland socket rather than spawning bash + hyprctl:
@@ -35,7 +37,6 @@ LockScreen {
             Hyprland.dispatch(`hl.dsp.focus({workspace=${wsId}})`)
         }
     }
-    onUnlockStarted: restoreTimer.restart()
 
     lockSurface: LockSurface {
         context: root.context
@@ -62,6 +63,8 @@ LockScreen {
                 }
                 root.savedWorkspaces = next
                 Quickshell.execDetached(["bash", "-c", batch])
+            } else {
+                restoreTimer.restart() // Surface is gone; now let the slide play
             }
         }
     }
