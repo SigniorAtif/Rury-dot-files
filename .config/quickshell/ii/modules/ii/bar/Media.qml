@@ -27,7 +27,9 @@ Item {
     }
 
     MouseArea {
+        id: mouseArea
         anchors.fill: parent
+        hoverEnabled: !Config.options.bar.tooltips.clickToShow
         acceptedButtons: Qt.MiddleButton | Qt.BackButton | Qt.ForwardButton | Qt.RightButton | Qt.LeftButton
         onPressed: (event) => {
             if (event.button === Qt.MiddleButton) {
@@ -37,9 +39,16 @@ Item {
             } else if (event.button === Qt.ForwardButton || event.button === Qt.RightButton) {
                 activePlayer.next();
             } else if (event.button === Qt.LeftButton) {
-                GlobalStates.mediaControlsOpen = !GlobalStates.mediaControlsOpen
+                if (mediaPopup.shared) BarPopoutState.togglePin(mediaPopup);
+                else GlobalStates.mediaControlsOpen = !GlobalStates.mediaControlsOpen;
             }
         }
+    }
+
+    MediaPopup {
+        id: mediaPopup
+        hoverTarget: mouseArea
+        active: mouseArea.containsMouse && !GlobalStates.mediaControlsOpen
     }
 
     RowLayout { // Real content

@@ -31,6 +31,10 @@ Scope {
                 id: barRoot
                 screen: barLoader.modelData
 
+                BarPopoutHost {
+                    screen: barRoot.screen
+                }
+
                 Timer {
                     id: showBarTimer
                     interval: (Config?.options.bar.autoHide.showWhenPressingSuper.delay ?? 100)

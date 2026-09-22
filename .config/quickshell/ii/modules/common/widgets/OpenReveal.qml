@@ -16,6 +16,7 @@ QtObject {
     property real fromScale: 0.97
     property bool animateOut: false
     property real toY: -8
+    property real speed: 1 // >1 = faster
     readonly property bool running: enterAnim.running || exitAnim.running
 
     property Translate translate: Translate {}
@@ -26,6 +27,7 @@ QtObject {
 
     function reset() {
         exitAnim.stop();
+        if (!target) return; // Target torn down (e.g. popup reloaded)
         target.opacity = 0;
         translate.x = fromX;
         translate.y = fromY;
@@ -47,6 +49,7 @@ QtObject {
     onOpenChanged: open ? playIn() : playOut()
 
     Component.onCompleted: {
+        if (!target) return;
         let transforms = [];
         for (let i = 0; i < target.transform.length; i++)
             transforms.push(target.transform[i]);
@@ -57,14 +60,14 @@ QtObject {
 
     property SequentialAnimation enterAnim: SequentialAnimation {
         PauseAnimation {
-            duration: root.delay
+            duration: root.delay / root.speed
         }
         ParallelAnimation {
             NumberAnimation {
                 target: root.target
                 property: "opacity"
                 to: 1
-                duration: Appearance.animation.elementMoveEnter.duration
+                duration: Appearance.animation.elementMoveEnter.duration / root.speed
                 easing.type: Appearance.animation.elementMoveEnter.type
                 easing.bezierCurve: Appearance.animation.elementMoveEnter.bezierCurve
             }
@@ -72,7 +75,7 @@ QtObject {
                 target: root.translate
                 properties: "x,y"
                 to: 0
-                duration: Appearance.animation.elementMove.duration
+                duration: Appearance.animation.elementMove.duration / root.speed
                 easing.type: Appearance.animation.elementMove.type
                 easing.bezierCurve: Appearance.animation.elementMove.bezierCurve
             }
@@ -80,7 +83,7 @@ QtObject {
                 target: root.scale
                 properties: "xScale,yScale"
                 to: 1
-                duration: Appearance.animation.elementMove.duration
+                duration: Appearance.animation.elementMove.duration / root.speed
                 easing.type: Appearance.animation.elementMove.type
                 easing.bezierCurve: Appearance.animation.elementMove.bezierCurve
             }
@@ -92,7 +95,7 @@ QtObject {
             target: root.target
             property: "opacity"
             to: 0
-            duration: Appearance.animation.elementMoveExit.duration
+            duration: Appearance.animation.elementMoveExit.duration / root.speed
             easing.type: Appearance.animation.elementMoveExit.type
             easing.bezierCurve: Appearance.animation.elementMoveExit.bezierCurve
         }
@@ -100,7 +103,7 @@ QtObject {
             target: root.translate
             property: "y"
             to: root.toY
-            duration: Appearance.animation.elementMoveExit.duration
+            duration: Appearance.animation.elementMoveExit.duration / root.speed
             easing.type: Appearance.animation.elementMoveExit.type
             easing.bezierCurve: Appearance.animation.elementMoveExit.bezierCurve
         }
@@ -108,7 +111,7 @@ QtObject {
             target: root.scale
             properties: "xScale,yScale"
             to: root.fromScale
-            duration: Appearance.animation.elementMoveExit.duration
+            duration: Appearance.animation.elementMoveExit.duration / root.speed
             easing.type: Appearance.animation.elementMoveExit.type
             easing.bezierCurve: Appearance.animation.elementMoveExit.bezierCurve
         }

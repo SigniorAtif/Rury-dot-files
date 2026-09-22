@@ -54,6 +54,7 @@ Scope {
                         searchWidget.enableExpandAnimation();
                     }
                     searchWidget.playResultsReveal();
+                    searchWidget.replayIconMorph();
                     GlobalFocusGrab.addDismissable(panelWindow);
                 }
             }
@@ -113,6 +114,7 @@ Scope {
                 fromY: -24
                 fromScale: 0.94
                 animateOut: true
+                speed: 1.6
             }
             OpenReveal {
                 target: overviewLoader
@@ -121,6 +123,7 @@ Scope {
                 fromY: -32
                 fromScale: 0.96
                 animateOut: true
+                speed: 1.6
                 toY: -16
             }
         }

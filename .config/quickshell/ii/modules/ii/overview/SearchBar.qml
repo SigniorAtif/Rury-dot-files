@@ -32,11 +32,30 @@ RowLayout {
         return SearchBar.SearchPrefixType.DefaultSearch;
     }
     
+    // Replays the icon's shape morph (the "spin") on every open, not only when the prefix changes
+    property bool iconMorphPrimed: true
+    function replayIconMorph() {
+        if (root.searchPrefixType === SearchBar.SearchPrefixType.Clipboard) return; // No spin for the clipboard (Super+V)
+        root.iconMorphPrimed = false;
+        iconMorphDelay.restart();
+    }
+    Timer {
+        // Morph once the panel is actually visible, otherwise it finishes during the fade-in
+        id: iconMorphDelay
+        interval: 110
+        onTriggered: root.iconMorphPrimed = true
+    }
+
     MaterialShapeWrappedMaterialSymbol {
         id: searchIcon
         Layout.alignment: Qt.AlignVCenter
         iconSize: Appearance.font.pixelSize.huge
-        shape: switch(root.searchPrefixType) {
+        shape: {
+            // Start point for the open morph: cookie -> mode shape, like the original first-open spin.
+            // Plain search is already the cookie, so it spins in from the gem instead.
+            if (!root.iconMorphPrimed)
+                return root.searchPrefixType === SearchBar.SearchPrefixType.DefaultSearch ? MaterialShape.Shape.Gem : MaterialShape.Shape.Cookie7Sided;
+            switch(root.searchPrefixType) {
             case SearchBar.SearchPrefixType.Action: return MaterialShape.Shape.Pill;
             case SearchBar.SearchPrefixType.App: return MaterialShape.Shape.Clover4Leaf;
             case SearchBar.SearchPrefixType.Clipboard: return MaterialShape.Shape.Gem;
@@ -45,6 +64,7 @@ RowLayout {
             case SearchBar.SearchPrefixType.ShellCommand: return MaterialShape.Shape.PixelCircle;
             case SearchBar.SearchPrefixType.WebSearch: return MaterialShape.Shape.SoftBurst;
             default: return MaterialShape.Shape.Cookie7Sided;
+            }
         }
         text: switch (root.searchPrefixType) {
             case SearchBar.SearchPrefixType.Action: return "settings_suggest";

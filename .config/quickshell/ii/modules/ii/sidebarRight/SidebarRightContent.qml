@@ -64,7 +64,6 @@ Item {
             spacing: sidebarPadding
 
             SystemButtonRow {
-                id: systemButtonRowSection
                 Layout.fillHeight: false
                 Layout.fillWidth: true
                 // Layout.margins: 10
@@ -86,13 +85,11 @@ Item {
             }
 
             LoaderedQuickPanelImplementation {
-                id: classicPanelSection
                 styleName: "classic"
                 sourceComponent: ClassicQuickPanel {}
             }
 
             LoaderedQuickPanelImplementation {
-                id: androidPanelSection
                 styleName: "android"
                 sourceComponent: AndroidQuickPanel {
                     editMode: root.editMode
@@ -100,14 +97,12 @@ Item {
             }
 
             CenterWidgetGroup {
-                id: centerWidgetSection
                 Layout.alignment: Qt.AlignHCenter
                 Layout.fillHeight: true
                 Layout.fillWidth: true
             }
 
             BottomWidgetGroup {
-                id: bottomWidgetSection
                 Layout.alignment: Qt.AlignHCenter
                 Layout.fillHeight: false
                 Layout.fillWidth: true
@@ -156,20 +151,6 @@ Item {
             Network.enableWifi();
             Network.rescanWifi();
         }
-    }
-
-    // Staggered entrance every time the sidebar opens (content stays loaded between opens)
-    SectionReveal { target: systemButtonRowSection; delay: 0 }
-    SectionReveal { target: slidersLoader; delay: 35 }
-    SectionReveal { target: classicPanelSection; delay: 70 }
-    SectionReveal { target: androidPanelSection; delay: 70 }
-    SectionReveal { target: centerWidgetSection; delay: 105 }
-    SectionReveal { target: bottomWidgetSection; delay: 140 }
-    component SectionReveal: OpenReveal {
-        open: GlobalStates.sidebarRightOpen
-        fromX: 28
-        fromY: 0
-        fromScale: 0.98
     }
 
     component ToggleDialog: Loader {

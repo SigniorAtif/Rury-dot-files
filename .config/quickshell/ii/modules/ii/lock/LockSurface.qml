@@ -96,9 +96,18 @@ MouseArea {
     //     }
     // }
 
+    // Greeting, now playing, notifications. Loaded by URL so an error in it
+    // can't break this surface (and lock you out).
+    Loader {
+        anchors.fill: parent
+        source: "LockExtras.qml"
+        asynchronous: true
+    }
+
     // Main toolbar: password box
     Toolbar {
         id: mainIsland
+        property OpenReveal reveal: OpenReveal { target: mainIsland; open: true; fromY: 50; fromScale: 0.9 }
         anchors {
             horizontalCenter: parent.horizontalCenter
             bottom: parent.bottom
@@ -231,6 +240,7 @@ MouseArea {
     // Left toolbar
     Toolbar {
         id: leftIsland
+        property OpenReveal reveal: OpenReveal { target: leftIsland; open: true; fromX: 60; fromY: 0; delay: 90 }
         anchors {
             right: mainIsland.left
             top: mainIsland.top
@@ -291,6 +301,7 @@ MouseArea {
     // Right toolbar
     Toolbar {
         id: rightIsland
+        property OpenReveal reveal: OpenReveal { target: rightIsland; open: true; fromX: -60; fromY: 0; delay: 90 }
         anchors {
             left: mainIsland.right
             top: mainIsland.top

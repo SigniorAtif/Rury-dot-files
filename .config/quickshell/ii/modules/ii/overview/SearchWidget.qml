@@ -36,6 +36,10 @@ Item { // Wrapper
         searchBar.animateWidth = false;
     }
 
+    function replayIconMorph() {
+        searchBar.replayIconMorph();
+    }
+
     function enableExpandAnimation() {
         searchBar.animateWidth = true;
     }
@@ -52,7 +56,7 @@ Item { // Wrapper
         target: root
         property: "resultsReveal"
         to: 1
-        duration: Appearance.animation.elementMove.duration
+        duration: Appearance.animation.elementMove.duration / 1.6
         easing.type: Appearance.animation.elementMove.type
         easing.bezierCurve: Appearance.animation.elementMove.bezierCurve
     }

@@ -80,7 +80,7 @@
       "workspaceZoom": 1
     },
     "thumbnailPath": "",
-    "wallpaperPath": "/home/atifahmed/git-clones/walls/minimal/a_mountain_with_trees_and_moon.jpg",
+    "wallpaperPath": "/home/atifahmed/git-clones/walls/1Generated/44.jpg",
     "widgets": {
       "clock": {
         "cookie": {
@@ -119,8 +119,8 @@
         "showOnlyWhenLocked": false,
         "style": "digital",
         "styleLocked": "digital",
-        "x": 100,
-        "y": 100
+        "x": 1026.5,
+        "y": 249.5
       },
       "weather": {
         "enable": false,
@@ -216,7 +216,7 @@
   },
   "conflictKiller": {
     "autoKillNotificationDaemons": false,
-    "autoKillTrays": false
+    "autoKillTrays": true
   },
   "crosshair": {
     "code": "0;P;d;1;0l;10;0o;2;1b;0"
@@ -268,8 +268,8 @@
       "enable": false
     },
     "night": {
-      "automatic": true,
-      "colorTemperature": 5331,
+      "automatic": false,
+      "colorTemperature": 4951,
       "from": "19:00",
       "to": "06:30"
     }
@@ -414,7 +414,7 @@
       "valueScroll": true,
       "visualize": false
     },
-    "keepRightSidebarLoaded": true,
+    "keepRightSidebarLoaded": false,
     "quickSliders": {
       "enable": true,
       "showBrightness": true,

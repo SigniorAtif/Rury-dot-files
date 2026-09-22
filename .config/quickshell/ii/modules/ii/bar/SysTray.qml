@@ -104,6 +104,7 @@ Item {
             StyledPopup {
                 id: overflowPopup
                 hoverTarget: trayOverflowButton
+                shared: false
                 active: root.trayOverflowOpen && root.unpinnedItems.length > 0
 
                 GridLayout {
