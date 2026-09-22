@@ -303,14 +303,6 @@ MouseArea {
                             root.updateThumbnails();
                         }
 
-                        // Cascade items in on open; later ones (scrolling) appear without delay
-                        property bool cascadeDone: false
-                        Timer {
-                            running: true
-                            interval: 900
-                            onTriggered: grid.cascadeDone = true
-                        }
-
                         function moveSelection(delta) {
                             currentIndex = Math.max(0, Math.min(grid.model.count - 1, currentIndex + delta));
                             positionViewAtIndex(currentIndex, GridView.Contain);
@@ -329,7 +321,6 @@ MouseArea {
                             fileModelData: modelData
                             width: grid.cellWidth
                             height: grid.cellHeight
-                            revealDelay: grid.cascadeDone ? 0 : Math.min(index, 20) * 28
                             colBackground: (index === grid?.currentIndex || containsMouse) ? Appearance.colors.colPrimary : (fileModelData.filePath === Config.options.background.wallpaperPath) ? Appearance.colors.colSecondaryContainer : ColorUtils.transparentize(Appearance.colors.colPrimaryContainer)
                             colText: (index === grid.currentIndex || containsMouse) ? Appearance.colors.colOnPrimary : (fileModelData.filePath === Config.options.background.wallpaperPath) ? Appearance.colors.colOnSecondaryContainer : Appearance.colors.colOnLayer0
 
