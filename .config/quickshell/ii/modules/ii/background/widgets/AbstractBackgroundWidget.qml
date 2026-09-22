@@ -22,8 +22,11 @@ AbstractWidget {
     property real targetY : Math.max(0, Math.min(configEntry.y, scaledScreenHeight - height))
     x: targetX
     y: targetY
+    // The unlock exit counts as unlocked: widgets come back while the backdrop
+    // un-blurs, not once the lock surface has gone
+    readonly property bool lockShown: GlobalStates.screenLocked && !GlobalStates.screenUnlocking
     visible: opacity > 0
-    opacity: (GlobalStates.screenLocked && !visibleWhenLocked) ? 0 : 1
+    opacity: (lockShown && !visibleWhenLocked) ? 0 : 1
     Behavior on opacity {
         animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
     }
@@ -44,7 +47,7 @@ AbstractWidget {
     property color dominantColor: Appearance.colors.colPrimary
     property bool dominantColorIsDark: dominantColor.hslLightness < 0.5
     property color colText: {
-        const onNormalBackground = (GlobalStates.screenLocked && Config.options.lock.blur.enable)
+        const onNormalBackground = (root.lockShown && Config.options.lock.blur.enable)
         const adaptiveColor = ColorUtils.colorWithLightness(Appearance.colors.colPrimary, (dominantColorIsDark ? 0.8 : 0.12))
         return onNormalBackground ? Appearance.colors.colOnLayer0 : adaptiveColor;
     }

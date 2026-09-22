@@ -19,7 +19,9 @@ Scope {
     // (see unlockStarted), and only then does the session lock surface go away.
     // Unlocking in one step showed a frame of the wrong workspace.
     signal unlockStarted()
-    readonly property int exitDuration: 260
+    // Long enough for the backdrop's blur fade (400ms, Background.qml lockBlur)
+    // to finish, since that now runs alongside the lock UI leaving
+    readonly property int exitDuration: 400
 
     Timer {
         id: exitTimer

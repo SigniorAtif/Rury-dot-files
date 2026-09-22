@@ -62,7 +62,9 @@ Variants {
         property bool shouldBlur: (GlobalStates.screenLocked && Config.options.lock.blur.enable)
         // 0 = sharp desktop wallpaper, 1 = blurred + dimmed lock backdrop.
         // Animated so locking/unlocking melts instead of snapping.
-        property real lockBlur: GlobalStates.screenLocked ? 1 : 0
+        // Unwinds as soon as the unlock starts, so the blur clearing and the
+        // lock UI leaving are one motion rather than two in sequence
+        property real lockBlur: (GlobalStates.screenLocked && !GlobalStates.screenUnlocking) ? 1 : 0
         Behavior on lockBlur {
             NumberAnimation {
                 duration: 400
