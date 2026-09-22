@@ -35,6 +35,7 @@ RowLayout {
     // Replays the icon's shape morph (the "spin") on every open, not only when the prefix changes
     property bool iconMorphPrimed: true
     function replayIconMorph() {
+        if (root.searchPrefixType === SearchBar.SearchPrefixType.Clipboard) return; // No spin for the clipboard (Super+V)
         root.iconMorphPrimed = false;
         iconMorphDelay.restart();
     }
