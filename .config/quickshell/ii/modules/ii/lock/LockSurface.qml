@@ -107,7 +107,8 @@ MouseArea {
     // Main toolbar: password box
     Toolbar {
         id: mainIsland
-        property OpenReveal reveal: OpenReveal { target: mainIsland; open: true; fromY: 50; fromScale: 0.9 }
+        property OpenReveal reveal: OpenReveal { target: mainIsland; open: !GlobalStates.screenUnlocking;
+            fromY: 50; fromScale: 0.9; animateOut: true; speed: 0.8; toY: 120; toScale: 1 }
         anchors {
             horizontalCenter: parent.horizontalCenter
             bottom: parent.bottom
@@ -240,7 +241,8 @@ MouseArea {
     // Left toolbar
     Toolbar {
         id: leftIsland
-        property OpenReveal reveal: OpenReveal { target: leftIsland; open: true; fromX: 60; fromY: 0; delay: 90 }
+        property OpenReveal reveal: OpenReveal { target: leftIsland; open: !GlobalStates.screenUnlocking;
+            fromX: 60; fromY: 0; delay: 90; animateOut: true; speed: 0.8; toX: -120; toY: 90; toScale: 1 }
         anchors {
             right: mainIsland.left
             top: mainIsland.top
@@ -301,7 +303,8 @@ MouseArea {
     // Right toolbar
     Toolbar {
         id: rightIsland
-        property OpenReveal reveal: OpenReveal { target: rightIsland; open: true; fromX: -60; fromY: 0; delay: 90 }
+        property OpenReveal reveal: OpenReveal { target: rightIsland; open: !GlobalStates.screenUnlocking;
+            fromX: -60; fromY: 0; delay: 90; animateOut: true; speed: 0.8; toX: 120; toY: 90; toScale: 1 }
         anchors {
             left: mainIsland.right
             top: mainIsland.top

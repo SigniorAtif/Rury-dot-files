@@ -25,9 +25,12 @@ Item {
         : hour < 18 ? Translation.tr("Good afternoon")
         : Translation.tr("Good evening")
 
+    // Comes in on lock, scatters away from the centre on unlock
     component Reveal: OpenReveal {
-        open: true
+        open: !GlobalStates.screenUnlocking
         speed: 0.9
+        animateOut: true
+        toScale: 1
     }
 
     // Soft top gradient so the text stays readable on any wallpaper
@@ -38,6 +41,10 @@ Item {
             top: parent.top
         }
         height: 220
+        opacity: GlobalStates.screenUnlocking ? 0 : 1
+        Behavior on opacity {
+            animation: Appearance.animation.elementMoveExit.numberAnimation.createObject(this)
+        }
         gradient: Gradient {
             GradientStop { position: 0; color: ColorUtils.transparentize(Appearance.colors.colLayer0, 0.55) }
             GradientStop { position: 1; color: "transparent" }
@@ -54,7 +61,7 @@ Item {
             topMargin: 30
         }
         spacing: 0
-        property Reveal reveal: Reveal { target: greetingBlock; fromX: -30; fromY: 0; delay: 80 }
+        property Reveal reveal: Reveal { target: greetingBlock; fromX: -30; fromY: 0; delay: 80; toX: -90; toY: -70 }
 
         StyledText {
             text: root.greeting + ","
@@ -85,7 +92,7 @@ Item {
         implicitHeight: notifRow.implicitHeight + 14
         radius: height / 2
         color: Appearance.m3colors.m3surfaceContainer
-        property Reveal reveal: Reveal { target: notifChip; fromX: 30; fromY: 0; delay: 140 }
+        property Reveal reveal: Reveal { target: notifChip; fromX: 30; fromY: 0; delay: 140; toX: 90; toY: -70 }
 
         RowLayout {
             id: notifRow
@@ -118,7 +125,7 @@ Item {
         implicitHeight: 64
         radius: height / 2
         color: Appearance.m3colors.m3surfaceContainer
-        property Reveal reveal: Reveal { target: mediaPill; fromY: -30; delay: 200 }
+        property Reveal reveal: Reveal { target: mediaPill; fromY: -30; delay: 200; toY: -110 }
 
         RowLayout {
             id: mediaRow

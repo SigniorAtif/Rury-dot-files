@@ -14,24 +14,22 @@ LockScreen {
     // Monitor name -> workspace id to restore on unlock (set when locking)
     property var savedWorkspaces: ({})
 
-    Timer {
-        id: restoreTimer
-        interval: 150
-        repeat: false
-        onTriggered: {
-            var batch = ""
-            for (var j = 0; j < Quickshell.screens.length; ++j) {
-                var monName = Quickshell.screens[j].name
-                var wsId = root.savedWorkspaces[monName]
-                if (wsId !== undefined) {
-                    batch += `hyprctl dispatch 'hl.dsp.focus({monitor="${monName}"})'; hyprctl dispatch 'hl.dsp.focus({workspace=${wsId}})';`
-                }
-            }
-            if (batch.length > 0) {
-                Quickshell.execDetached(["bash", "-c", batch])
+    // Put the real workspaces back while the lock surface still covers them,
+    // so the reveal never shows the empty temp workspace.
+    function restoreWorkspaces() {
+        var batch = ""
+        for (var j = 0; j < Quickshell.screens.length; ++j) {
+            var monName = Quickshell.screens[j].name
+            var wsId = root.savedWorkspaces[monName]
+            if (wsId !== undefined) {
+                batch += `hyprctl dispatch 'hl.dsp.focus({monitor="${monName}"})'; hyprctl dispatch 'hl.dsp.focus({workspace=${wsId}})';`
             }
         }
+        if (batch.length > 0) {
+            Quickshell.execDetached(["bash", "-c", batch])
+        }
     }
+    onUnlockStarted: root.restoreWorkspaces()
 
     lockSurface: LockSurface {
         context: root.context
@@ -57,8 +55,6 @@ LockScreen {
                 }
                 root.savedWorkspaces = next
                 Quickshell.execDetached(["bash", "-c", batch])
-            } else {
-                restoreTimer.start()
             }
         }
     }

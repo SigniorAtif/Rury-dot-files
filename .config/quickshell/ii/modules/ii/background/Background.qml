@@ -60,6 +60,16 @@ Variants {
         readonly property bool verticalParallax: (Config.options.background.parallax.autoVertical && wallpaperHeight > wallpaperWidth) || Config.options.background.parallax.vertical
         // Colors
         property bool shouldBlur: (GlobalStates.screenLocked && Config.options.lock.blur.enable)
+        // 0 = sharp desktop wallpaper, 1 = blurred + dimmed lock backdrop.
+        // Animated so locking/unlocking melts instead of snapping.
+        property real lockBlur: GlobalStates.screenLocked ? 1 : 0
+        Behavior on lockBlur {
+            NumberAnimation {
+                duration: 400
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Appearance.animationCurves.expressiveDefaultSpatial
+            }
+        }
         property color dominantColor: Appearance.colors.colPrimary // Default, to be changed
         property bool dominantColorIsDark: dominantColor.hslLightness < 0.5
         property color colText: {
@@ -74,7 +84,9 @@ Variants {
         // Layer props
         screen: modelData
         exclusionMode: ExclusionMode.Ignore
-        WlrLayershell.layer: (GlobalStates.screenLocked && !scaleAnim.running) ? WlrLayer.Overlay : WlrLayer.Bottom
+        // Drops back under the windows the moment the lock surface unmaps; the
+        // blur is still fading at that point, which is what carries the reveal.
+        WlrLayershell.layer: GlobalStates.screenLocked ? WlrLayer.Overlay : WlrLayer.Bottom
         // WlrLayershell.layer: WlrLayer.Bottom
         WlrLayershell.namespace: "quickshell:background"
         anchors {
@@ -130,7 +142,7 @@ Variants {
             // Wallpaper
             StyledImage {
                 id: wallpaper
-                visible: opacity > 0 && !blurLoader.active
+                visible: opacity > 0 // Stays lit under the blurred copy while it fades
                 opacity: (status === Image.Ready && !bgRoot.wallpaperIsVideo) ? 1 : 0
                 cache: false
                 smooth: false
@@ -200,24 +212,18 @@ Variants {
 
             Loader {
                 id: blurLoader
-                active: Config.options.lock.blur.enable && (GlobalStates.screenLocked || scaleAnim.running)
+                active: Config.options.lock.blur.enable && bgRoot.lockBlur > 0
                 anchors.fill: wallpaper
-                scale: GlobalStates.screenLocked ? Config.options.lock.blur.extraZoom : 1
-                Behavior on scale {
-                    NumberAnimation {
-                        id: scaleAnim
-                        duration: 400
-                        easing.type: Easing.BezierSpline
-                        easing.bezierCurve: Appearance.animationCurves.expressiveDefaultSpatial
-                    }
-                }
+                opacity: bgRoot.lockBlur
+                scale: 1 + (Config.options.lock.blur.extraZoom - 1) * bgRoot.lockBlur
                 sourceComponent: GaussianBlur {
+                    // Radius and samples are constant: animating them recompiles
+                    // the shader every frame. The fade does the work instead.
                     source: wallpaper
-                    radius: GlobalStates.screenLocked ? Config.options.lock.blur.radius : 0
+                    radius: Config.options.lock.blur.radius
                     samples: radius * 2 + 1
 
                     Rectangle {
-                        opacity: GlobalStates.screenLocked ? 1 : 0
                         anchors.fill: parent
                         color: CF.ColorUtils.transparentize(Appearance.colors.colLayer0, 0.7)
                     }
