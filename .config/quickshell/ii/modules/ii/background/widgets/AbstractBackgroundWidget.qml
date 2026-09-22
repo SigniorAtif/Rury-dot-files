@@ -58,24 +58,55 @@ AbstractWidget {
         target: Config
         function onReadyChanged() { refreshPlacementIfNeeded() }
     }
+    // Placement engine ported from the Fedora (Oct 2025) Background.qml:
+    // search for a region the size of the actual widget (plus margin) and keep
+    // it out of the part of the wallpaper that parallax can scroll off-screen.
+    readonly property real widgetSizePadding: 20
+    readonly property real screenSizePadding: 50
+    property real wallpaperZoom: 1 // Background's parallax workspaceZoom
+    property real movableXSpace: 0 // Half the horizontal parallax travel, in screen px
+    property real movableYSpace: 0 // Half the vertical parallax travel, in screen px
+    property real lastPlacedWidth: 0
+    property real lastPlacedHeight: 0
+
+    onWidthChanged: placementSizeTimer.restart()
+    onHeightChanged: placementSizeTimer.restart()
+    onMovableXSpaceChanged: placementSizeTimer.restart()
+    onMovableYSpaceChanged: placementSizeTimer.restart()
+    Timer {
+        id: placementSizeTimer
+        interval: 400
+        onTriggered: {
+            // Ignore tiny size changes (e.g. digits ticking) to avoid jitter
+            if (Math.abs(root.width - root.lastPlacedWidth) < 24 && Math.abs(root.height - root.lastPlacedHeight) < 24) return;
+            root.refreshPlacementIfNeeded();
+        }
+    }
+
     function refreshPlacementIfNeeded() {
         if (!Config.ready) return;
         if (root.placementStrategy === "free" && !root.needsColText) return;
+        if (root.width <= 0 || root.height <= 0) return; // Size unknown yet; the size timer retries
+        root.lastPlacedWidth = root.width;
+        root.lastPlacedHeight = root.height;
         leastBusyRegionProc.wallpaperPath = root.wallpaperPath;
+        leastBusyRegionProc.contentWidth = Math.round((root.width + root.widgetSizePadding * 2) / root.wallpaperZoom);
+        leastBusyRegionProc.contentHeight = Math.round((root.height + root.widgetSizePadding * 2) / root.wallpaperZoom);
+        leastBusyRegionProc.horizontalPadding = Math.round((root.movableXSpace + root.screenSizePadding * 2) / root.wallpaperZoom);
+        leastBusyRegionProc.verticalPadding = Math.round((root.movableYSpace + root.screenSizePadding * 2) / root.wallpaperZoom);
         leastBusyRegionProc.running = false;
         leastBusyRegionProc.running = true;
     }
     Process {
         id: leastBusyRegionProc
         property string wallpaperPath: root.wallpaperPath
-        // TODO: make these less arbitrary
         property int contentWidth: 300
         property int contentHeight: 300
-        property int horizontalPadding: 200
-        property int verticalPadding: 200
+        property int horizontalPadding: 100
+        property int verticalPadding: 100
         command: [Quickshell.shellPath("scripts/images/least-busy-region-venv.sh") // Comments to force the formatter to break lines
-            , "--screen-width", Math.round(root.scaledScreenWidth) //
-            , "--screen-height", Math.round(root.scaledScreenHeight) //
+            , "--screen-width", Math.round(root.scaledScreenWidth / root.wallpaperZoom) //
+            , "--screen-height", Math.round(root.scaledScreenHeight / root.wallpaperZoom) //
             , "--width", contentWidth //
             , "--height", contentHeight //
             , "--horizontal-padding", horizontalPadding //
@@ -93,8 +124,8 @@ AbstractWidget {
                 const parsedContent = JSON.parse(output);
                 root.dominantColor = parsedContent.dominant_color || Appearance.colors.colPrimary;
                 if (root.placementStrategy === "free") return;
-                root.targetX = parsedContent.center_x * root.wallpaperScale - root.width / 2;
-                root.targetY  = parsedContent.center_y * root.wallpaperScale - root.height / 2;
+                root.targetX = parsedContent.center_x * root.wallpaperZoom * root.wallpaperScale - root.width / 2;
+                root.targetY  = parsedContent.center_y * root.wallpaperZoom * root.wallpaperScale - root.height / 2;
             }
         }
     }

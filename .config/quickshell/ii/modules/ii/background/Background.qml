@@ -262,6 +262,9 @@ Variants {
                         scaledScreenWidth: bgRoot.screen.width
                         scaledScreenHeight: bgRoot.screen.height
                         wallpaperScale: 1
+                        wallpaperZoom: bgRoot.parallaxRation
+                        movableXSpace: bgRoot.parallaxTotalPixelsX / 2
+                        movableYSpace: bgRoot.parallaxTotalPixelsY / 2
                     }
                 }
 
@@ -273,6 +276,9 @@ Variants {
                         scaledScreenWidth: bgRoot.screen.width
                         scaledScreenHeight: bgRoot.screen.height
                         wallpaperScale: 1
+                        wallpaperZoom: bgRoot.parallaxRation
+                        movableXSpace: bgRoot.parallaxTotalPixelsX / 2
+                        movableYSpace: bgRoot.parallaxTotalPixelsY / 2
                         wallpaperSafetyTriggered: bgRoot.wallpaperSafetyTriggered
                     }
                 }
