@@ -14,22 +14,28 @@ LockScreen {
     // Monitor name -> workspace id to restore on unlock (set when locking)
     property var savedWorkspaces: ({})
 
-    // Put the real workspaces back while the lock surface still covers them,
-    // so the reveal never shows the empty temp workspace.
+    // Hyprland slides the workspace back in (see the slidevert keyword set on
+    // lock). That slide is part of the reveal, so it has to start just before
+    // the lock surface unmaps -- restoring at the start of the exit meant it
+    // finished in secret and the windows simply appeared.
+    property int restoreLead: 80
+    Timer {
+        id: restoreTimer
+        interval: Math.max(0, root.exitDuration - root.restoreLead)
+        onTriggered: root.restoreWorkspaces()
+    }
+    // Over the existing Hyprland socket rather than spawning bash + hyprctl:
+    // a fork/exec storm on the first frames of the reveal costs frames.
     function restoreWorkspaces() {
-        var batch = ""
         for (var j = 0; j < Quickshell.screens.length; ++j) {
             var monName = Quickshell.screens[j].name
             var wsId = root.savedWorkspaces[monName]
-            if (wsId !== undefined) {
-                batch += `hyprctl dispatch 'hl.dsp.focus({monitor="${monName}"})'; hyprctl dispatch 'hl.dsp.focus({workspace=${wsId}})';`
-            }
-        }
-        if (batch.length > 0) {
-            Quickshell.execDetached(["bash", "-c", batch])
+            if (wsId === undefined) continue;
+            Hyprland.dispatch(`hl.dsp.focus({monitor="${monName}"})`)
+            Hyprland.dispatch(`hl.dsp.focus({workspace=${wsId}})`)
         }
     }
-    onUnlockStarted: root.restoreWorkspaces()
+    onUnlockStarted: restoreTimer.restart()
 
     lockSurface: LockSurface {
         context: root.context
@@ -40,6 +46,7 @@ LockScreen {
         target: GlobalStates
         function onScreenLockedChanged() {
             if (GlobalStates.screenLocked) {
+                restoreTimer.stop(); // Re-locked mid-exit
                 // Lock: save workspace per monitor and move all to temp workspace in one batch
                 var next = {}
                 var batch = "keyword animation workspaces,1,7,menu_decel,slidevert; "
