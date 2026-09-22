@@ -10,6 +10,10 @@ MouseArea {
 
     property alias animateXPos: xBehavior.enabled
     property alias animateYPos: yBehavior.enabled
+    // Widgets that travel a long way (e.g. the clock centring on lock) can
+    // shorten this so the move doesn't read as sluggish
+    property int moveDuration: Appearance.animation.elementMove.duration
+    property list<real> moveCurve: Appearance.animation.elementMove.bezierCurve
     property bool draggable: true
     drag.target: draggable ? root : undefined
     cursorShape: (draggable && containsPress) ? Qt.ClosedHandCursor : draggable ? Qt.OpenHandCursor : Qt.ArrowCursor
@@ -21,10 +25,18 @@ MouseArea {
 
     Behavior on x {
         id: xBehavior
-        animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
+        NumberAnimation {
+            duration: root.moveDuration
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: root.moveCurve
+        }
     }
     Behavior on y {
         id: yBehavior
-        animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
+        NumberAnimation {
+            duration: root.moveDuration
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: root.moveCurve
+        }
     }
 }

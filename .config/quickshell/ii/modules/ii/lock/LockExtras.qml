@@ -28,7 +28,7 @@ Item {
     // Comes in on lock, scatters away from the centre on unlock
     component Reveal: OpenReveal {
         open: !GlobalStates.screenUnlocking
-        speed: 0.9
+        speed: 1.1
         animateOut: true
         toScale: 1
     }

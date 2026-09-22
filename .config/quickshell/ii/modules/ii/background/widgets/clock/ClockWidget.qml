@@ -21,6 +21,9 @@ AbstractBackgroundWidget {
     readonly property bool shouldShow: (!Config.options.background.widgets.clock.showOnlyWhenLocked || GlobalStates.screenLocked)
     property bool wallpaperSafetyTriggered: false
     needsColText: clockStyle === "digital"
+    // Same timing as the backdrop blur so centring and blurring land together
+    moveDuration: 320
+    moveCurve: Appearance.animationCurves.emphasized
     x: forceCenter ? ((root.screenWidth - root.width) / 2) : targetX
     y: forceCenter ? ((root.screenHeight - root.height) / 2) : targetY
     visibleWhenLocked: true
