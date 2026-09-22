@@ -93,10 +93,17 @@ AbstractBackgroundWidget {
             radius: Appearance.rounding.small
             color: ColorUtils.transparentize(Appearance.colors.colSecondaryContainer, root.clockStyle === "cookie" ? 0 : 1)
 
+            // The clock centres on (screenHeight - height) / 2, so anything that
+            // resizes it moves that target. Growing the "Locked" chip in over
+            // 300ms made the clock land low and then creep upwards, so it only
+            // animates its size once it's already on screen (e.g. text changes).
+            readonly property bool settled: statusTextBg.opacity >= 1
             Behavior on implicitWidth {
+                enabled: statusTextBg.settled
                 animation: Appearance.animation.elementResize.numberAnimation.createObject(this)
             }
             Behavior on implicitHeight {
+                enabled: statusTextBg.settled
                 animation: Appearance.animation.elementResize.numberAnimation.createObject(this)
             }
             Behavior on opacity {
