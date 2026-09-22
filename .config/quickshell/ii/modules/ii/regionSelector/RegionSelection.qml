@@ -340,6 +340,12 @@ PanelWindow {
             if (root.draggingX === root.dragStartX && root.draggingY === root.dragStartY) {
                 if (root.targetedRegionValid()) {
                     root.setRegionToTargeted();
+                } else {
+                    // Click on nothing -> whole screen (Fedora behavior)
+                    root.regionX = 0;
+                    root.regionY = 0;
+                    root.regionWidth = root.screen.width;
+                    root.regionHeight = root.screen.height;
                 }
             }
             // Circle dragging?
