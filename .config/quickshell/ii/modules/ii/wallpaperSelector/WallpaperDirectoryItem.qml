@@ -20,6 +20,9 @@ MouseArea {
     margins: Appearance.sizes.wallpaperSelectorItemMargins
     padding: Appearance.sizes.wallpaperSelectorItemPadding
 
+    property int revealDelay: 0
+    readonly property bool isCurrent: fileModelData.filePath === Config.options.background.wallpaperPath
+
     signal activated()
 
     hoverEnabled: true
@@ -29,6 +32,18 @@ MouseArea {
         id: background
         anchors.fill: parent
         radius: Appearance.rounding.normal
+        // Lift on hover, squish on press
+        scale: root.pressed ? 0.95 : root.containsMouse ? 1.04 : 1
+        Behavior on scale {
+            animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
+        }
+        property OpenReveal reveal: OpenReveal {
+            target: background
+            open: true
+            delay: root.revealDelay
+            fromY: 24
+            fromScale: 0.9
+        }
         Behavior on color {
             animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
         }
@@ -91,6 +106,26 @@ MouseArea {
                                 radius: Appearance.rounding.small
                             }
                         }
+                    }
+                }
+
+                Rectangle { // Current wallpaper badge
+                    visible: root.isCurrent && root.useThumbnail
+                    z: 2
+                    anchors {
+                        top: parent.top
+                        right: parent.right
+                        margins: 6
+                    }
+                    implicitWidth: 26
+                    implicitHeight: 26
+                    radius: 13
+                    color: Appearance.colors.colPrimary
+                    MaterialSymbol {
+                        anchors.centerIn: parent
+                        text: "check"
+                        iconSize: Appearance.font.pixelSize.normal
+                        color: Appearance.colors.colOnPrimary
                     }
                 }
 
