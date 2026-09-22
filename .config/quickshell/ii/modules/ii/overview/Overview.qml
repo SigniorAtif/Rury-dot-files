@@ -20,7 +20,7 @@ Scope {
         property string searchingText: ""
         readonly property HyprlandMonitor monitor: Hyprland.monitorFor(panelWindow.screen)
         property bool monitorIsFocused: (Hyprland.focusedMonitor?.id == monitor?.id)
-        visible: GlobalStates.overviewOpen
+        visible: GlobalStates.overviewOpen || searchReveal.running
 
         WlrLayershell.namespace: "quickshell:overview"
         WlrLayershell.layer: WlrLayer.Top
@@ -48,7 +48,12 @@ Scope {
                 } else {
                     if (!overviewScope.dontAutoCancelSearch) {
                         searchWidget.cancelSearch();
+                    } else {
+                        // Clipboard/emoji toggles skip cancelSearch(), which used to be
+                        // the only place animations got re-enabled
+                        searchWidget.enableExpandAnimation();
                     }
+                    searchWidget.playResultsReveal();
                     GlobalFocusGrab.addDismissable(panelWindow);
                 }
             }
@@ -70,7 +75,7 @@ Scope {
 
         Column {
             id: columnLayout
-            visible: GlobalStates.overviewOpen
+            visible: GlobalStates.overviewOpen || searchReveal.running
             anchors {
                 horizontalCenter: parent.horizontalCenter
                 top: parent.top
@@ -94,11 +99,29 @@ Scope {
             Loader {
                 id: overviewLoader
                 anchors.horizontalCenter: parent.horizontalCenter
-                active: GlobalStates.overviewOpen && (Config?.options.overview.enable ?? true)
+                active: (GlobalStates.overviewOpen || searchReveal.running) && (Config?.options.overview.enable ?? true)
                 sourceComponent: OverviewWidget {
                     screen: panelWindow.screen
                     visible: (panelWindow.searchingText == "")
                 }
+            }
+
+            OpenReveal {
+                id: searchReveal
+                target: searchWidget
+                open: GlobalStates.overviewOpen
+                fromY: -24
+                fromScale: 0.94
+                animateOut: true
+            }
+            OpenReveal {
+                target: overviewLoader
+                open: GlobalStates.overviewOpen
+                delay: 70
+                fromY: -32
+                fromScale: 0.96
+                animateOut: true
+                toY: -16
             }
         }
     }
