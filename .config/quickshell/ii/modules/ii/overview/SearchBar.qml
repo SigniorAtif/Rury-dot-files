@@ -32,11 +32,20 @@ RowLayout {
         return SearchBar.SearchPrefixType.DefaultSearch;
     }
     
+    // Replays the icon's shape morph (the "spin") on every open, not only when the prefix changes
+    property bool iconMorphPrimed: true
+    function replayIconMorph() {
+        root.iconMorphPrimed = false;
+        Qt.callLater(() => root.iconMorphPrimed = true);
+    }
+
     MaterialShapeWrappedMaterialSymbol {
         id: searchIcon
         Layout.alignment: Qt.AlignVCenter
         iconSize: Appearance.font.pixelSize.huge
-        shape: switch(root.searchPrefixType) {
+        shape: {
+            if (!root.iconMorphPrimed) return MaterialShape.Shape.Circle; // Start point for the open morph
+            switch(root.searchPrefixType) {
             case SearchBar.SearchPrefixType.Action: return MaterialShape.Shape.Pill;
             case SearchBar.SearchPrefixType.App: return MaterialShape.Shape.Clover4Leaf;
             case SearchBar.SearchPrefixType.Clipboard: return MaterialShape.Shape.Gem;
@@ -45,6 +54,7 @@ RowLayout {
             case SearchBar.SearchPrefixType.ShellCommand: return MaterialShape.Shape.PixelCircle;
             case SearchBar.SearchPrefixType.WebSearch: return MaterialShape.Shape.SoftBurst;
             default: return MaterialShape.Shape.Cookie7Sided;
+            }
         }
         text: switch (root.searchPrefixType) {
             case SearchBar.SearchPrefixType.Action: return "settings_suggest";

@@ -36,6 +36,10 @@ Item { // Wrapper
         searchBar.animateWidth = false;
     }
 
+    function replayIconMorph() {
+        searchBar.replayIconMorph();
+    }
+
     function enableExpandAnimation() {
         searchBar.animateWidth = true;
     }

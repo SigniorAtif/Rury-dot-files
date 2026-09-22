@@ -54,6 +54,7 @@ Scope {
                         searchWidget.enableExpandAnimation();
                     }
                     searchWidget.playResultsReveal();
+                    searchWidget.replayIconMorph();
                     GlobalFocusGrab.addDismissable(panelWindow);
                 }
             }
