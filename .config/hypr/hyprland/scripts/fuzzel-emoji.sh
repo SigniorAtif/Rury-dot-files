@@ -1849,7 +1849,7 @@ exit
 🫰 hand with index finger and thumb crossed heart love money expensive
 🫵 index pointing at the viewer you recruit
 🫶 heart hands love appreciation support
-🫦 biting lip flirt sexy pain worry
+🫦 biting lips flirt sexy pain worry skibidi toilet rizz cap no printer sussy baka sheesh +1000 aura
 🫅 person with crown royalty power
 🫃 pregnant man baby belly
 🫄 pregnant person baby belly
