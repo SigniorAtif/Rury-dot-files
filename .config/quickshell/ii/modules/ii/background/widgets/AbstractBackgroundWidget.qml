@@ -85,8 +85,16 @@ AbstractWidget {
     property real wallpaperZoom: 1 // Background's parallax workspaceZoom
     property real movableXSpace: 0 // Half the horizontal parallax travel, in screen px
     property real movableYSpace: 0 // Half the vertical parallax travel, in screen px
+    // Background only knows the parallax travel once `magick identify` has
+    // returned. Placing before that uses movableXSpace/movableYSpace of 0, so
+    // the region search ignores the strip the wallpaper can scroll away and the
+    // widget lands somewhere it has to be moved from a moment later.
+    property bool geometryReady: true
+    onGeometryReadyChanged: if (geometryReady) refreshPlacementIfNeeded()
     property real lastPlacedWidth: 0
     property real lastPlacedHeight: 0
+    property real lastPlacedMovableXSpace: -1
+    property real lastPlacedMovableYSpace: -1
 
     onWidthChanged: placementSizeTimer.restart()
     onHeightChanged: placementSizeTimer.restart()
@@ -99,18 +107,24 @@ AbstractWidget {
             // The lock screen resizes widgets (the "Locked" chip), and replacing
             // them for that means a second, pointless move once they've landed
             if (GlobalStates.screenLocked || GlobalStates.screenUnlocking) return;
-            // Ignore tiny size changes (e.g. digits ticking) to avoid jitter
-            if (Math.abs(root.width - root.lastPlacedWidth) < 24 && Math.abs(root.height - root.lastPlacedHeight) < 24) return;
+            // Ignore tiny size changes (e.g. digits ticking) to avoid jitter.
+            // Parallax travel changing is not a size change, but it does move
+            // where the widget belongs, so it has to get through this.
+            const parallaxChanged = (root.movableXSpace !== root.lastPlacedMovableXSpace || root.movableYSpace !== root.lastPlacedMovableYSpace);
+            if (!parallaxChanged && Math.abs(root.width - root.lastPlacedWidth) < 24 && Math.abs(root.height - root.lastPlacedHeight) < 24) return;
             root.refreshPlacementIfNeeded();
         }
     }
 
     function refreshPlacementIfNeeded() {
         if (!Config.ready) return;
+        if (!root.geometryReady) return; // onGeometryReadyChanged retries
         if (root.placementStrategy === "free" && !root.needsColText) return;
         if (root.width <= 0 || root.height <= 0) return; // Size unknown yet; the size timer retries
         root.lastPlacedWidth = root.width;
         root.lastPlacedHeight = root.height;
+        root.lastPlacedMovableXSpace = root.movableXSpace;
+        root.lastPlacedMovableYSpace = root.movableYSpace;
         leastBusyRegionProc.wallpaperPath = root.wallpaperPath;
         leastBusyRegionProc.contentWidth = Math.round((root.width + root.widgetSizePadding * 2) / root.wallpaperZoom);
         leastBusyRegionProc.contentHeight = Math.round((root.height + root.widgetSizePadding * 2) / root.wallpaperZoom);
