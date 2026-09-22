@@ -36,7 +36,13 @@ RowLayout {
     property bool iconMorphPrimed: true
     function replayIconMorph() {
         root.iconMorphPrimed = false;
-        Qt.callLater(() => root.iconMorphPrimed = true);
+        iconMorphDelay.restart();
+    }
+    Timer {
+        // Morph once the panel is actually visible, otherwise it finishes during the fade-in
+        id: iconMorphDelay
+        interval: 110
+        onTriggered: root.iconMorphPrimed = true
     }
 
     MaterialShapeWrappedMaterialSymbol {
@@ -44,7 +50,10 @@ RowLayout {
         Layout.alignment: Qt.AlignVCenter
         iconSize: Appearance.font.pixelSize.huge
         shape: {
-            if (!root.iconMorphPrimed) return MaterialShape.Shape.Circle; // Start point for the open morph
+            // Start point for the open morph: cookie -> mode shape, like the original first-open spin.
+            // Plain search is already the cookie, so it spins in from the gem instead.
+            if (!root.iconMorphPrimed)
+                return root.searchPrefixType === SearchBar.SearchPrefixType.DefaultSearch ? MaterialShape.Shape.Gem : MaterialShape.Shape.Cookie7Sided;
             switch(root.searchPrefixType) {
             case SearchBar.SearchPrefixType.Action: return MaterialShape.Shape.Pill;
             case SearchBar.SearchPrefixType.App: return MaterialShape.Shape.Clover4Leaf;
