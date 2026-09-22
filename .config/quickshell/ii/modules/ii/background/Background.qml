@@ -110,7 +110,13 @@ Variants {
             animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
         }
 
+        // False until `magick identify` has reported the wallpaper's real size.
+        // Until then minSuitableScale is a guess and the parallax travel reads
+        // as 0, so placing a widget now means placing it twice.
+        property bool wallpaperGeometryReady: false
+
         onWallpaperPathChanged: {
+            bgRoot.wallpaperGeometryReady = false;
             bgRoot.updateZoomScale();
             // Clock position gets updated after zoom scale is updated
         }
@@ -138,6 +144,7 @@ Variants {
                     // Big picture; scale < 1; will zoom out the picture
                     // Choose max number so every side will fit
                     bgRoot.minSuitableScale = Math.max(screenWidth / width, screenHeight / height);
+                    bgRoot.wallpaperGeometryReady = true;
                 }
             }
         }
@@ -200,13 +207,19 @@ Variants {
 
                 source: bgRoot.wallpaperSafetyTriggered ? "" : bgRoot.wallpaperPath
                 fillMode: Image.PreserveAspectCrop
+                // Held off until the real wallpaper size is in: the first
+                // parallax offset is a correction from a placeholder, not a
+                // move, and animating it was the slide seen right after the
+                // wallpaper appeared.
                 Behavior on x {
+                    enabled: bgRoot.wallpaperGeometryReady
                     NumberAnimation {
                         duration: 600
                         easing.type: Easing.OutCubic
                     }
                 }
                 Behavior on y {
+                    enabled: bgRoot.wallpaperGeometryReady
                     NumberAnimation {
                         duration: 600
                         easing.type: Easing.OutCubic
@@ -251,6 +264,15 @@ Variants {
                 readonly property bool locked: GlobalStates.screenLocked
                 x: wallpaperTotalOffsetX * parallaxFactor * !locked
                 y: wallpaperTotalOffsetY * parallaxFactor * !locked
+                // Locking zeroes the offset so the clock can centre on the real
+                // screen; without these the canvas teleported by the parallax
+                // travel while the clock was still animating into place.
+                Behavior on x {
+                    animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
+                }
+                Behavior on y {
+                    animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
+                }
 
                 transitions: Transition {
                     PropertyAnimation {
@@ -277,6 +299,7 @@ Variants {
                         wallpaperZoom: bgRoot.parallaxRation
                         movableXSpace: bgRoot.parallaxTotalPixelsX / 2
                         movableYSpace: bgRoot.parallaxTotalPixelsY / 2
+                        geometryReady: bgRoot.wallpaperGeometryReady
                     }
                 }
 
@@ -291,6 +314,7 @@ Variants {
                         wallpaperZoom: bgRoot.parallaxRation
                         movableXSpace: bgRoot.parallaxTotalPixelsX / 2
                         movableYSpace: bgRoot.parallaxTotalPixelsY / 2
+                        geometryReady: bgRoot.wallpaperGeometryReady
                         wallpaperSafetyTriggered: bgRoot.wallpaperSafetyTriggered
                     }
                 }
