@@ -207,19 +207,13 @@ Variants {
 
                 source: bgRoot.wallpaperSafetyTriggered ? "" : bgRoot.wallpaperPath
                 fillMode: Image.PreserveAspectCrop
-                // Held off until the real wallpaper size is in: the first
-                // parallax offset is a correction from a placeholder, not a
-                // move, and animating it was the slide seen right after the
-                // wallpaper appeared.
                 Behavior on x {
-                    enabled: bgRoot.wallpaperGeometryReady
                     NumberAnimation {
                         duration: 600
                         easing.type: Easing.OutCubic
                     }
                 }
                 Behavior on y {
-                    enabled: bgRoot.wallpaperGeometryReady
                     NumberAnimation {
                         duration: 600
                         easing.type: Easing.OutCubic
