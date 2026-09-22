@@ -23,8 +23,24 @@ AbstractWidget {
     x: targetX
     y: targetY
     // The unlock exit counts as unlocked: widgets come back while the backdrop
-    // un-blurs, not once the lock surface has gone
-    readonly property bool lockShown: GlobalStates.screenLocked && !GlobalStates.screenUnlocking
+    // un-blurs, not once the lock surface has gone. Held back a beat so the
+    // backdrop clears first and the clock is still moving when the bar slides in.
+    readonly property bool lockActive: GlobalStates.screenLocked && !GlobalStates.screenUnlocking
+    property int unlockLag: 180
+    property bool lockShown: GlobalStates.screenLocked
+    onLockActiveChanged: {
+        if (lockActive) { // Locking is immediate; only the exit lingers
+            unlockLagTimer.stop();
+            lockShown = true;
+        } else {
+            unlockLagTimer.restart();
+        }
+    }
+    Timer {
+        id: unlockLagTimer
+        interval: root.unlockLag
+        onTriggered: root.lockShown = false
+    }
     visible: opacity > 0
     opacity: (lockShown && !visibleWhenLocked) ? 0 : 1
     Behavior on opacity {
@@ -80,6 +96,9 @@ AbstractWidget {
         id: placementSizeTimer
         interval: 400
         onTriggered: {
+            // The lock screen resizes widgets (the "Locked" chip), and replacing
+            // them for that means a second, pointless move once they've landed
+            if (GlobalStates.screenLocked || GlobalStates.screenUnlocking) return;
             // Ignore tiny size changes (e.g. digits ticking) to avoid jitter
             if (Math.abs(root.width - root.lastPlacedWidth) < 24 && Math.abs(root.height - root.lastPlacedHeight) < 24) return;
             root.refreshPlacementIfNeeded();
