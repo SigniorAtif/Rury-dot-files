@@ -36,6 +36,27 @@ Item { // Wrapper
         searchBar.animateWidth = false;
     }
 
+    function enableExpandAnimation() {
+        searchBar.animateWidth = true;
+    }
+
+    // Results drop down from the search bar on every open, not only the first one
+    property real resultsReveal: 1
+    function playResultsReveal() {
+        if (!root.showResults) return;
+        root.resultsReveal = 0;
+        resultsRevealAnim.restart();
+    }
+    NumberAnimation {
+        id: resultsRevealAnim
+        target: root
+        property: "resultsReveal"
+        to: 1
+        duration: Appearance.animation.elementMove.duration
+        easing.type: Appearance.animation.elementMove.type
+        easing.bezierCurve: Appearance.animation.elementMove.bezierCurve
+    }
+
     function cancelSearch() {
         searchBar.searchInput.selectAll();
         LauncherSearch.query = "";
@@ -109,13 +130,14 @@ Item { // Wrapper
         }
         clip: true
         implicitWidth: columnLayout.implicitWidth
-        implicitHeight: columnLayout.implicitHeight
+        readonly property real collapsedHeight: searchBar.implicitHeight + searchBar.verticalPadding * 2
+        implicitHeight: collapsedHeight + (columnLayout.implicitHeight - collapsedHeight) * root.resultsReveal
         radius: searchBar.height / 2 + searchBar.verticalPadding
         color: Appearance.colors.colBackgroundSurfaceContainer
 
         Behavior on implicitHeight {
             id: searchHeightBehavior
-            enabled: GlobalStates.overviewOpen && root.showResults
+            enabled: GlobalStates.overviewOpen && root.showResults && !resultsRevealAnim.running
             animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
         }
 

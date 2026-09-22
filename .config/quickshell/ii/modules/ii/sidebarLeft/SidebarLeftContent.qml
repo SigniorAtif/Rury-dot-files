@@ -1,3 +1,4 @@
+import qs
 import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
@@ -40,6 +41,10 @@ Item {
         }
     }
 
+    // Staggered entrance every time the sidebar opens
+    OpenReveal { target: tabToolbarSection; open: GlobalStates.sidebarLeftOpen; fromX: -28; fromY: 0; fromScale: 0.98 }
+    OpenReveal { target: pageSection; open: GlobalStates.sidebarLeftOpen; delay: 60; fromX: -28; fromY: 0; fromScale: 0.98 }
+
     ColumnLayout {
         anchors {
             fill: parent
@@ -48,6 +53,7 @@ Item {
         spacing: sidebarPadding
 
         Toolbar {
+            id: tabToolbarSection
             visible: tabButtonList.length > 0
             Layout.alignment: Qt.AlignHCenter
             enableShadow: false
@@ -60,6 +66,7 @@ Item {
         }
 
         Rectangle {
+            id: pageSection
             Layout.fillWidth: true
             Layout.fillHeight: true
             implicitWidth: swipeView.implicitWidth
