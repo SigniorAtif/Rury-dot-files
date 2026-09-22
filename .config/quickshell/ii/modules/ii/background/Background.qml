@@ -264,15 +264,6 @@ Variants {
                 readonly property bool locked: GlobalStates.screenLocked
                 x: wallpaperTotalOffsetX * parallaxFactor * !locked
                 y: wallpaperTotalOffsetY * parallaxFactor * !locked
-                // Locking zeroes the offset so the clock can centre on the real
-                // screen; without these the canvas teleported by the parallax
-                // travel while the clock was still animating into place.
-                Behavior on x {
-                    animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
-                }
-                Behavior on y {
-                    animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
-                }
 
                 transitions: Transition {
                     PropertyAnimation {
