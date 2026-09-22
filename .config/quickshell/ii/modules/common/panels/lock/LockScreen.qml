@@ -14,42 +14,15 @@ Scope {
 
     required property Component lockSurface
     property alias context: lockContext
-
-    // Unlock is staged: the desktop is restored behind the (transparent) lock
-    // surface while its contents animate away, then the session lock is dropped.
-    // Doing it the other way round flashed the empty wallpaper workspace.
-    signal unlockStarted()
-    property bool exiting: false
-    property int exitDuration: 380
-    Timer {
-        id: exitTimer
-        interval: root.exitDuration
-        onTriggered: {
-            GlobalStates.screenLocked = false;
-            root.exiting = false;
-        }
-    }
     property Component sessionLockSurface: WlSessionLockSurface {
         id: sessionLockSurface
         color: "transparent"
         Loader {
             active: GlobalStates.screenLocked
             anchors.fill: parent
-            opacity: active && !root.exiting ? 1 : 0
-            scale: root.exiting ? 1.06 : 1
+            opacity: active ? 1 : 0
             Behavior on opacity {
-                NumberAnimation {
-                    duration: root.exitDuration - 40
-                    easing.type: Easing.BezierSpline
-                    easing.bezierCurve: Appearance.animationCurves.standard
-                }
-            }
-            Behavior on scale {
-                NumberAnimation {
-                    duration: root.exitDuration
-                    easing.type: Easing.BezierSpline
-                    easing.bezierCurve: Appearance.animationCurves.standard
-                }
+                animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
             }
             sourceComponent: root.lockSurface
         }
@@ -79,8 +52,6 @@ Scope {
             target: GlobalStates
             function onScreenLockedChanged() {
                 if (GlobalStates.screenLocked) {
-                    exitTimer.stop();
-                    root.exiting = false;
                     lockContext.reset();
                     lockContext.tryFingerUnlock();
                 }
@@ -100,13 +71,9 @@ Scope {
             // Unlock the keyring if configured to do so
             if (Config.options.lock.security.unlockKeyring) root.unlockKeyring(); // Async
 
-            // Bring the desktop back behind the lock, fade the lock out, then
-            // unlock (before exiting, or the compositor shows a fallback lock).
-            if (!root.exiting) {
-                root.exiting = true;
-                root.unlockStarted();
-                exitTimer.restart();
-            }
+            // Unlock the screen before exiting, or the compositor will display a
+            // fallback lock you can't interact with.
+            GlobalStates.screenLocked = false;
 
             // Reset
             lockContext.reset();
