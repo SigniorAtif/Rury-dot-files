@@ -20,7 +20,7 @@ LockScreen {
     // the time you first see it, which reads as a snap. Fire it a frame after
     // the surface unmaps instead, so you watch the empty workspace slide up
     // into the real one -- what it did before the staged exit existed.
-    property int restoreDelay: 16
+    property int restoreDelay: 8
     Timer {
         id: restoreTimer
         interval: root.restoreDelay
