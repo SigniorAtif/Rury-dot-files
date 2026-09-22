@@ -19,12 +19,9 @@ Scope {
     // (see unlockStarted), and only then does the session lock surface go away.
     // Unlocking in one step showed a frame of the wrong workspace.
     signal unlockStarted()
-    // Only as long as the lock UI itself needs to leave: the islands are gone
-    // after 250ms (elementMoveExit 200ms over speed 0.8). The backdrop's blur
-    // fade is 400ms but lives on the background layer, so it keeps going after
-    // the surface unmaps -- holding the surface up for it just delayed the
-    // workspace slide until the clock had already landed.
-    readonly property int exitDuration: 260
+    // Long enough for the backdrop's blur fade (400ms, Background.qml lockBlur)
+    // to finish, since that now runs alongside the lock UI leaving
+    readonly property int exitDuration: 400
 
     Timer {
         id: exitTimer
