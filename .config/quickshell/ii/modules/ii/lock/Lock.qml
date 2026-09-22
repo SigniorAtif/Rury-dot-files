@@ -15,10 +15,11 @@ LockScreen {
     property var savedWorkspaces: ({})
 
     // Hyprland slides the workspace back in (the slidevert keyword set on lock).
-    // Held until the backdrop's 400ms blur fade has nearly finished, so the
-    // windows arrive over a wallpaper that is already sharp, and well after
-    // the islands have scattered. Still overlaps the clock's trip home.
-    property int restoreDelay: 350
+    // Starts with everything else, on the same frame as the islands scatter:
+    // the lock surface is transparent and the background drops below the
+    // windows the moment the blur starts unwinding, so the slide is on screen
+    // straight away rather than hidden until the surface unmaps.
+    property int restoreDelay: 0
     Timer {
         id: restoreTimer
         interval: root.restoreDelay
