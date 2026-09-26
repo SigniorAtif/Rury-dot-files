@@ -5,6 +5,7 @@ import Quickshell.Widgets
 import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
+import qs.modules.common.functions
 
 ContentPage {
     forceWidth: true
@@ -122,22 +123,71 @@ ContentPage {
                     text: Translation.tr("SigniorAtif")
                     font.pixelSize: Appearance.font.pixelSize.title
                 }
-                StyledText {
+                Item {
                     id: tagline
-                    font.pixelSize: Appearance.font.pixelSize.normal
-                    color: Appearance.colors.colSubtext
 
-                    readonly property string plain: Translation.tr("Personal Hyprland desktop")
-                    // What the shell calls itself, for anyone who pokes at the subtitle.
-                    readonly property string aside: Translation.tr("Rury, to those who know it")
-                    property bool revealed: false
-                    text: tagline.revealed ? tagline.aside : tagline.plain
+                    // Two labels share the slot, so it has to be as wide and
+                    // as tall as whichever of them is showing.
+                    Layout.preferredWidth: Math.max(plainLabel.implicitWidth, nameRow.implicitWidth)
+                    Layout.preferredHeight: Math.max(plainLabel.implicitHeight, nameRow.implicitHeight)
+
+                    // 0 is the tagline, 1 is her name. One animated number
+                    // drives the whole thing; each letter reads its own slice
+                    // out of it, which is where the stagger comes from without
+                    // a timer per letter.
+                    property real reveal: 0
+                    readonly property string aside: "named for Rury"
+                    readonly property real trail: 3.2 // letters in the air at once
+
+                    // The tagline is out of the way before the first letter
+                    // arrives, so the two are never on screen together.
+                    readonly property real handover: 0.3
+                    readonly property real lettersIn: Math.max(0, (reveal - handover) / (1 - handover))
+
+                    StyledText {
+                        id: plainLabel
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.verticalCenterOffset: -7 * Math.min(1, tagline.reveal / tagline.handover)
+                        text: Translation.tr("Personal Hyprland desktop")
+                        font.pixelSize: Appearance.font.pixelSize.normal
+                        color: Appearance.colors.colSubtext
+                        opacity: 1 - Math.min(1, tagline.reveal / tagline.handover)
+                    }
+
+                    Row {
+                        id: nameRow
+                        anchors.verticalCenter: parent.verticalCenter
+                        height: plainLabel.implicitHeight
+
+                        Repeater {
+                            model: tagline.aside.length
+
+                            StyledText {
+                                required property int index
+
+                                // This letter's own 0..1, opening one after
+                                // another as the shared number sweeps past.
+                                readonly property real t: Math.max(0, Math.min(1,
+                                    (tagline.lettersIn * (tagline.aside.length + tagline.trail) - index) / tagline.trail))
+
+                                // A plain space collapses in a Row.
+                                text: tagline.aside.charAt(index) === " " ? "\u00a0" : tagline.aside.charAt(index)
+                                font.pixelSize: Appearance.font.pixelSize.normal
+                                opacity: t
+                                y: (1 - t) * 9
+                                scale: 0.82 + 0.18 * t
+                                // Arrives lit and cools into the subtitle colour;
+                                // squared so the accent lingers past the fade-in.
+                                color: ColorUtils.mix(Appearance.colors.colSubtext, Appearance.m3colors.m3primary, t * t)
+                            }
+                        }
+                    }
 
                     MouseArea {
                         anchors.fill: parent
                         property int taps: 0
                         onClicked: {
-                            if (tagline.revealed) return;
+                            if (tagline.reveal > 0) return;
                             if (++taps < 3) return;
                             taps = 0;
                             revealAside.restart();
@@ -147,27 +197,15 @@ ContentPage {
                     SequentialAnimation {
                         id: revealAside
                         NumberAnimation {
-                            target: tagline; property: "opacity"; to: 0; duration: 120
-                            easing.type: Appearance.animation.elementMoveExit.type
-                            easing.bezierCurve: Appearance.animationCurves.emphasizedFirstHalf
+                            target: tagline; property: "reveal"; from: 0; to: 1; duration: 850
+                            easing.type: Easing.BezierSpline
+                            easing.bezierCurve: Appearance.animationCurves.emphasized
                         }
-                        PropertyAction { target: tagline; property: "revealed"; value: true }
+                        PauseAnimation { duration: 3200 }
                         NumberAnimation {
-                            target: tagline; property: "opacity"; to: 1; duration: 180
-                            easing.type: Appearance.animation.elementMoveEnter.type
-                            easing.bezierCurve: Appearance.animationCurves.emphasizedLastHalf
-                        }
-                        PauseAnimation { duration: 3500 }
-                        NumberAnimation {
-                            target: tagline; property: "opacity"; to: 0; duration: 120
-                            easing.type: Appearance.animation.elementMoveExit.type
-                            easing.bezierCurve: Appearance.animationCurves.emphasizedFirstHalf
-                        }
-                        PropertyAction { target: tagline; property: "revealed"; value: false }
-                        NumberAnimation {
-                            target: tagline; property: "opacity"; to: 1; duration: 180
-                            easing.type: Appearance.animation.elementMoveEnter.type
-                            easing.bezierCurve: Appearance.animationCurves.emphasizedLastHalf
+                            target: tagline; property: "reveal"; to: 0; duration: 650
+                            easing.type: Easing.BezierSpline
+                            easing.bezierCurve: Appearance.animationCurves.emphasized
                         }
                     }
                 }
