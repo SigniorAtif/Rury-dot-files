@@ -103,8 +103,38 @@ ContentPage {
                     font.pixelSize: Appearance.font.pixelSize.normal
                     color: Appearance.colors.colSubtext
                 }
+                StyledText {
+                    text: Translation.tr("Based on [illogical-impulse](https://github.com/end-4/dots-hyprland) by end-4, under the GPL-3.0")
+                    font.pixelSize: Appearance.font.pixelSize.smaller
+                    color: Appearance.colors.colSubtext
+                    textFormat: Text.MarkdownText
+                    onLinkActivated: (link) => {
+                        Qt.openUrlExternally(link)
+                    }
+                    PointingHandLinkHover {}
+                }
             }
         }
 
+        Flow {
+            Layout.fillWidth: true
+            spacing: 5
+
+            RippleButtonWithIcon {
+                materialIcon: "code"
+                mainText: Translation.tr("Upstream project")
+                onClicked: {
+                    Qt.openUrlExternally("https://github.com/end-4/dots-hyprland")
+                }
+            }
+            RippleButtonWithIcon {
+                materialIcon: "balance"
+                materialIconFill: false
+                mainText: Translation.tr("License")
+                onClicked: {
+                    Qt.openUrlExternally("https://www.gnu.org/licenses/gpl-3.0.html")
+                }
+            }
+        }
     }
 }
