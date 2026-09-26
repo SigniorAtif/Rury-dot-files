@@ -123,9 +123,53 @@ ContentPage {
                     font.pixelSize: Appearance.font.pixelSize.title
                 }
                 StyledText {
-                    text: Translation.tr("Personal Hyprland desktop")
+                    id: tagline
                     font.pixelSize: Appearance.font.pixelSize.normal
                     color: Appearance.colors.colSubtext
+
+                    readonly property string plain: Translation.tr("Personal Hyprland desktop")
+                    // What the shell calls itself, for anyone who pokes at the subtitle.
+                    readonly property string aside: Translation.tr("Rury, to those who know it")
+                    property bool revealed: false
+                    text: tagline.revealed ? tagline.aside : tagline.plain
+
+                    MouseArea {
+                        anchors.fill: parent
+                        property int taps: 0
+                        onClicked: {
+                            if (tagline.revealed) return;
+                            if (++taps < 3) return;
+                            taps = 0;
+                            revealAside.restart();
+                        }
+                    }
+
+                    SequentialAnimation {
+                        id: revealAside
+                        NumberAnimation {
+                            target: tagline; property: "opacity"; to: 0; duration: 120
+                            easing.type: Appearance.animation.elementMoveExit.type
+                            easing.bezierCurve: Appearance.animationCurves.emphasizedFirstHalf
+                        }
+                        PropertyAction { target: tagline; property: "revealed"; value: true }
+                        NumberAnimation {
+                            target: tagline; property: "opacity"; to: 1; duration: 180
+                            easing.type: Appearance.animation.elementMoveEnter.type
+                            easing.bezierCurve: Appearance.animationCurves.emphasizedLastHalf
+                        }
+                        PauseAnimation { duration: 3500 }
+                        NumberAnimation {
+                            target: tagline; property: "opacity"; to: 0; duration: 120
+                            easing.type: Appearance.animation.elementMoveExit.type
+                            easing.bezierCurve: Appearance.animationCurves.emphasizedFirstHalf
+                        }
+                        PropertyAction { target: tagline; property: "revealed"; value: false }
+                        NumberAnimation {
+                            target: tagline; property: "opacity"; to: 1; duration: 180
+                            easing.type: Appearance.animation.elementMoveEnter.type
+                            easing.bezierCurve: Appearance.animationCurves.emphasizedLastHalf
+                        }
+                    }
                 }
                 StyledText {
                     text: Translation.tr("Based on [illogical-impulse](https://github.com/end-4/dots-hyprland) by end-4, under the GPL-3.0")
