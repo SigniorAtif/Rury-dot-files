@@ -126,18 +126,56 @@ ContentPage {
                 Item {
                     id: tagline
 
-                    // Two labels share the slot, so it has to be as wide and
-                    // as tall as whichever of them is showing.
-                    Layout.preferredWidth: Math.max(plainLabel.implicitWidth, nameRow.implicitWidth)
-                    Layout.preferredHeight: Math.max(plainLabel.implicitHeight, nameRow.implicitHeight)
+                    // The tagline alone sets the slot, so picking a longer
+                    // line cannot nudge the section sideways. A wider one
+                    // simply overhangs to the right while it is showing.
+                    Layout.preferredWidth: plainLabel.implicitWidth
+                    Layout.preferredHeight: plainLabel.implicitHeight
 
-                    // 0 is the tagline, 1 is her name. One animated number
-                    // drives the whole thing; each letter reads its own slice
-                    // out of it, which is where the stagger comes from without
-                    // a timer per letter.
+                    // 0 is the tagline, 1 is the line about her. One animated
+                    // number drives the whole thing; each letter reads its own
+                    // slice out of it, which is where the stagger comes from
+                    // without a timer per letter.
                     property real reveal: 0
-                    readonly property string aside: "named for Rury"
-                    readonly property real trail: 3.2 // letters in the air at once
+
+                    readonly property var lines: [
+                        "Maintained by me, approved by rury",
+                        "rury's, technically",
+                        "Personal Hyprland desktop \u2014 hers too",
+                        "Not personal, actually",
+                        "Still her favourite logo",
+                        "Now with 100% more rury",
+                        "rury-certified",
+                        "Compiles faster when she's online"
+                    ]
+
+                    // Drawn from a shuffled bag rather than at random, so every
+                    // line shows once before any of them comes back.
+                    property var bag: []
+                    property string aside: lines[0]
+
+                    function nextLine(): string {
+                        if (tagline.bag.length === 0) {
+                            let fresh = tagline.lines.slice();
+                            for (let i = fresh.length - 1; i > 0; i--) {
+                                const j = Math.floor(Math.random() * (i + 1));
+                                [fresh[i], fresh[j]] = [fresh[j], fresh[i]];
+                            }
+                            // A refill must not hand straight back the line that
+                            // just showed, which is the one seam a bag can repeat.
+                            if (fresh.length > 1 && fresh[fresh.length - 1] === tagline.aside)
+                                [fresh[fresh.length - 1], fresh[0]] = [fresh[0], fresh[fresh.length - 1]];
+                            tagline.bag = fresh;
+                        }
+                        const rest = tagline.bag.slice();
+                        const line = rest.pop();
+                        tagline.bag = rest;
+                        return line;
+                    }
+
+                    // Letters in the air at once, kept proportional so a long
+                    // line does not race past in the same time a short one takes.
+                    readonly property real trail: Math.max(2.5, aside.length * 0.25)
 
                     // The tagline is out of the way before the first letter
                     // arrives, so the two are never on screen together.
@@ -207,6 +245,7 @@ ContentPage {
                             if (tagline.reveal > 0) return;
                             if (++taps < 3) return;
                             taps = 0;
+                            tagline.aside = tagline.nextLine();
                             revealAside.restart();
                         }
                     }
