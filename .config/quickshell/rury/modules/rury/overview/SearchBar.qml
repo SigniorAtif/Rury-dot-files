@@ -1,0 +1,191 @@
+pragma ComponentBehavior: Bound
+import QtQuick
+import QtQuick.Layouts
+import Quickshell
+import qs
+import qs.services
+import qs.modules.common
+import qs.modules.common.widgets
+import qs.modules.common.functions
+
+RowLayout {
+    id: root
+    spacing: 6
+    property bool animateWidth: false
+    property alias searchInput: searchInput
+    property string searchingText
+    property bool musicHistoryExpanded: false
+
+    // Don't carry the song history over to the next time the overview opens
+    Connections {
+        target: GlobalStates
+        function onOverviewOpenChanged() {
+            if (!GlobalStates.overviewOpen) root.musicHistoryExpanded = false;
+        }
+    }
+
+    function forceFocus() {
+        searchInput.forceActiveFocus();
+    }
+
+    enum SearchPrefixType { Action, App, Clipboard, Emojis, Math, ShellCommand, WebSearch, DefaultSearch }
+
+    property var searchPrefixType: {
+        if (root.searchingText.startsWith(Config.options.search.prefix.action)) return SearchBar.SearchPrefixType.Action;
+        if (root.searchingText.startsWith(Config.options.search.prefix.app)) return SearchBar.SearchPrefixType.App;
+        if (root.searchingText.startsWith(Config.options.search.prefix.clipboard)) return SearchBar.SearchPrefixType.Clipboard;
+        if (root.searchingText.startsWith(Config.options.search.prefix.emojis)) return SearchBar.SearchPrefixType.Emojis;
+        if (root.searchingText.startsWith(Config.options.search.prefix.math)) return SearchBar.SearchPrefixType.Math;
+        if (root.searchingText.startsWith(Config.options.search.prefix.shellCommand)) return SearchBar.SearchPrefixType.ShellCommand;
+        if (root.searchingText.startsWith(Config.options.search.prefix.webSearch)) return SearchBar.SearchPrefixType.WebSearch;
+        return SearchBar.SearchPrefixType.DefaultSearch;
+    }
+    
+    // Replays the icon's shape morph (the "spin") on every open, not only when the prefix changes
+    property bool iconMorphPrimed: true
+    function replayIconMorph() {
+        if (root.searchPrefixType === SearchBar.SearchPrefixType.Clipboard) return; // No spin for the clipboard (Super+V)
+        root.iconMorphPrimed = false;
+        iconMorphDelay.restart();
+    }
+    Timer {
+        // Morph once the panel is actually visible, otherwise it finishes during the fade-in
+        id: iconMorphDelay
+        interval: 110
+        onTriggered: root.iconMorphPrimed = true
+    }
+
+    MaterialShapeWrappedMaterialSymbol {
+        id: searchIcon
+        Layout.alignment: Qt.AlignVCenter
+        iconSize: Appearance.font.pixelSize.huge
+        shape: {
+            // Start point for the open morph: cookie -> mode shape, like the original first-open spin.
+            // Plain search is already the cookie, so it spins in from the gem instead.
+            if (!root.iconMorphPrimed)
+                return root.searchPrefixType === SearchBar.SearchPrefixType.DefaultSearch ? MaterialShape.Shape.Gem : MaterialShape.Shape.Cookie7Sided;
+            switch(root.searchPrefixType) {
+            case SearchBar.SearchPrefixType.Action: return MaterialShape.Shape.Pill;
+            case SearchBar.SearchPrefixType.App: return MaterialShape.Shape.Clover4Leaf;
+            case SearchBar.SearchPrefixType.Clipboard: return MaterialShape.Shape.Gem;
+            case SearchBar.SearchPrefixType.Emojis: return MaterialShape.Shape.Sunny;
+            case SearchBar.SearchPrefixType.Math: return MaterialShape.Shape.PuffyDiamond;
+            case SearchBar.SearchPrefixType.ShellCommand: return MaterialShape.Shape.PixelCircle;
+            case SearchBar.SearchPrefixType.WebSearch: return MaterialShape.Shape.SoftBurst;
+            default: return MaterialShape.Shape.Cookie7Sided;
+            }
+        }
+        text: switch (root.searchPrefixType) {
+            case SearchBar.SearchPrefixType.Action: return "settings_suggest";
+            case SearchBar.SearchPrefixType.App: return "apps";
+            case SearchBar.SearchPrefixType.Clipboard: return "content_paste_search";
+            case SearchBar.SearchPrefixType.Emojis: return "add_reaction";
+            case SearchBar.SearchPrefixType.Math: return "calculate";
+            case SearchBar.SearchPrefixType.ShellCommand: return "terminal";
+            case SearchBar.SearchPrefixType.WebSearch: return "travel_explore";
+            case SearchBar.SearchPrefixType.DefaultSearch: return "search";
+            default: return "search";
+        }
+    }
+    ToolbarTextField { // Search box
+        id: searchInput
+        Layout.topMargin: 4
+        Layout.bottomMargin: 4
+        implicitHeight: 40
+        focus: GlobalStates.overviewOpen
+        font.pixelSize: Appearance.font.pixelSize.small
+        placeholderText: Translation.tr("Search, calculate or run")
+        // The song history needs the full width too, not just search results
+        implicitWidth: (root.searchingText == "" && !root.musicHistoryExpanded) ? Appearance.sizes.searchWidthCollapsed : Appearance.sizes.searchWidth
+
+        Behavior on implicitWidth {
+            id: searchWidthBehavior
+            enabled: root.animateWidth || root.musicHistoryExpanded
+            NumberAnimation {
+                duration: 300
+                easing.type: Appearance.animation.elementMove.type
+                easing.bezierCurve: Appearance.animation.elementMove.bezierCurve
+            }
+        }
+
+        onTextChanged: LauncherSearch.query = text
+
+        onAccepted: {
+            if (appResults.count > 0) {
+                // Get the first visible delegate and trigger its click
+                let firstItem = appResults.itemAtIndex(0);
+                if (firstItem && firstItem.clicked) {
+                    firstItem.clicked();
+                }
+            }
+        }
+
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_Tab) {
+                if (LauncherSearch.results.length === 0) return;
+                const tabbedText = LauncherSearch.results[0].name;
+                LauncherSearch.query = tabbedText;
+                searchInput.text = tabbedText;
+                event.accepted = true;
+            }
+        }
+    }
+
+    IconToolbarButton {
+        Layout.topMargin: 4
+        Layout.bottomMargin: 4
+        onClicked: {
+            GlobalStates.overviewOpen = false;
+            Quickshell.execDetached(["qs", "-p", Quickshell.shellPath(""), "ipc", "call", "region", "search"]);
+        }
+        text: "image_search"
+        StyledToolTip {
+            text: Translation.tr("Google Lens")
+        }
+    }
+
+    IconToolbarButton {
+        id: songRecButton
+        Layout.topMargin: 4
+        Layout.bottomMargin: 4
+        Layout.rightMargin: 4
+        toggled: SongRec.running
+        onClicked: SongRec.toggleRunning()
+        altAction: () => root.musicHistoryExpanded = !root.musicHistoryExpanded
+        middleClickAction: () => SongRec.toggleMonitorSource()
+        text: "music_cast"
+
+        StyledToolTip {
+            text: Translation.tr("Recognize music | Right-click for history | Middle-click to cycle source")
+        }
+
+        colText: toggled ? Appearance.colors.colOnPrimary : Appearance.colors.colOnSurfaceVariant
+        background: MaterialShape {
+            RotationAnimation on rotation {
+                running: songRecButton.toggled
+                duration: 12000
+                easing.type: Easing.Linear
+                loops: Animation.Infinite
+                from: 0
+                to: 360
+            }
+            shape: {
+                if (songRecButton.down) {
+                    return songRecButton.toggled ? MaterialShape.Shape.Circle : MaterialShape.Shape.Square
+                } else {
+                    return songRecButton.toggled ? MaterialShape.Shape.SoftBurst : MaterialShape.Shape.Circle
+                }
+            }
+            color: {
+                if (songRecButton.toggled) {
+                    return songRecButton.hovered ? Appearance.colors.colPrimaryHover : Appearance.colors.colPrimary
+                } else {
+                    return songRecButton.hovered ? Appearance.colors.colSurfaceContainerHigh : ColorUtils.transparentize(Appearance.colors.colSurfaceContainerHigh)
+                }
+            }
+            Behavior on color {
+                animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
+            }
+        }
+    }
+}
