@@ -148,6 +148,13 @@ if [ "$DO_FONTS" -eq 1 ]; then
         rm -rf "$tmp"
     fi
     fc-cache -f >/dev/null
+
+    say "Installing the shell icon"
+    mkdir -p "$HOME/.local/share/icons"
+    cp "$REPO/.config/quickshell/rury/assets/icons/rury.png" \
+       "$HOME/.local/share/icons/rury.png"
+    command -v gtk-update-icon-cache >/dev/null &&
+        gtk-update-icon-cache -f -t "$HOME/.local/share/icons" 2>/dev/null || true
 fi
 
 # --- dotfiles --------------------------------------------------------------
