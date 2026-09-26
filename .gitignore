@@ -1,0 +1,8 @@
+# tooling scratch
+.claude-flow/
+.swarm/
+.code-review-graph/
+ruvector.db
+
+# written by the shell at runtime
+config.json.bak
