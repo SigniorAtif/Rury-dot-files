@@ -29,6 +29,10 @@ Item {
             fetchProcess.running = true;
     }
 
+    // A new username is a new picture, so go and get it rather than waiting
+    // for the next scheduled fetch.
+    onUserChanged: root.refresh()
+
     // Qt keeps images keyed by url, and the path never changes, so clearing
     // the source first is what forces a re-read from disk.
     function reload(image: Image): void {
