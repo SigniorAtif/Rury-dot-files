@@ -154,27 +154,44 @@ ContentPage {
                         opacity: 1 - Math.min(1, tagline.reveal / tagline.handover)
                     }
 
-                    Row {
+                    Item {
                         id: nameRow
                         anchors.verticalCenter: parent.verticalCenter
+                        anchors.left: parent.left
+                        width: parent.width
                         height: plainLabel.implicitHeight
 
                         Repeater {
                             model: tagline.aside.length
 
                             StyledText {
+                                id: letter
                                 required property int index
+
+                                // Each letter sits where the whole string would
+                                // have put it, so the kerning is the same as one
+                                // label; a Row of single characters loses it.
+                                TextMetrics {
+                                    id: upToHere
+                                    font: letter.font
+                                    text: tagline.aside.substring(0, letter.index)
+                                }
 
                                 // This letter's own 0..1, opening one after
                                 // another as the shared number sweeps past.
                                 readonly property real t: Math.max(0, Math.min(1,
                                     (tagline.lettersIn * (tagline.aside.length + tagline.trail) - index) / tagline.trail))
 
-                                // A plain space collapses in a Row.
-                                text: tagline.aside.charAt(index) === " " ? "\u00a0" : tagline.aside.charAt(index)
-                                font.pixelSize: Appearance.font.pixelSize.normal
-                                opacity: t
+                                text: tagline.aside.charAt(index)
+                                // Taken whole, so a lone digit cannot flip this
+                                // one letter into the number font.
+                                font: plainLabel.font
+                                // advanceWidth, not width: width drops a
+                                // trailing space, which would pull every letter
+                                // after a word one space to the left.
+                                x: upToHere.advanceWidth
                                 y: (1 - t) * 9
+                                opacity: t
                                 scale: 0.82 + 0.18 * t
                                 // Arrives lit and cools into the subtitle colour;
                                 // squared so the accent lingers past the fade-in.
