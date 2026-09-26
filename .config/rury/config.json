@@ -161,7 +161,7 @@
     "tooltips": {
       "clickToShow": false
     },
-    "topLeftIcon": "spark",
+    "topLeftIcon": "rury.png",
     "utilButtons": {
       "showColorPicker": true,
       "showDarkModeToggle": false,

@@ -1,4 +1,6 @@
 import QtQuick
+import Quickshell
+import Quickshell.Widgets
 import qs
 import qs.services
 import qs.modules.common
@@ -9,14 +11,19 @@ RippleButton {
 
     property bool showPing: false
 
+    // A topLeftIcon with a file extension is a picture in assets/icons, drawn
+    // as-is and clipped to a circle. Anything else is a symbolic icon name.
+    readonly property string topLeftIcon: Config.options.bar.topLeftIcon
+    readonly property bool pictureIcon: root.topLeftIcon.includes(".")
+
     property bool aiChatEnabled: Config.options.policies.ai !== 0
     property bool translatorEnabled: Config.options.sidebar.translator.enable
     property bool animeEnabled: Config.options.policies.weeb !== 0
     visible: aiChatEnabled || translatorEnabled || animeEnabled
 
     property real buttonPadding: 5
-    implicitWidth: distroIcon.width + buttonPadding * 2
-    implicitHeight: distroIcon.height + buttonPadding * 2
+    implicitWidth: iconArea.width + buttonPadding * 2
+    implicitHeight: iconArea.height + buttonPadding * 2
     buttonRadius: Appearance.rounding.full
     colBackgroundHover: Appearance.colors.colLayer1Hover
     colRipple: Appearance.colors.colLayer1Active
@@ -52,14 +59,39 @@ RippleButton {
         }
     }
 
-    CustomIcon {
-        id: distroIcon
+    Item {
+        id: iconArea
         anchors.centerIn: parent
         width: 19.5
         height: 19.5
-        source: Config.options.bar.topLeftIcon == 'distro' ? SystemInfo.distroIcon : `${Config.options.bar.topLeftIcon}-symbolic`
-        colorize: true
-        color: Appearance.colors.colOnLayer0
+
+        Loader {
+            anchors.fill: parent
+            active: !root.pictureIcon
+            sourceComponent: CustomIcon {
+                source: root.topLeftIcon == 'distro' ? SystemInfo.distroIcon : `${root.topLeftIcon}-symbolic`
+                colorize: true
+                color: Appearance.colors.colOnLayer0
+            }
+        }
+
+        Loader {
+            anchors.fill: parent
+            active: root.pictureIcon
+            sourceComponent: ClippingRectangle {
+                radius: width / 2
+                color: "transparent"
+                Image {
+                    anchors.fill: parent
+                    source: Qt.resolvedUrl(Quickshell.shellPath(`assets/icons/${root.topLeftIcon}`))
+                    fillMode: Image.PreserveAspectCrop
+                    sourceSize.width: 64
+                    sourceSize.height: 64
+                    smooth: true
+                    asynchronous: true
+                }
+            }
+        }
 
         Rectangle {
             opacity: root.showPing ? 1 : 0
