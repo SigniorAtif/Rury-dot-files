@@ -87,9 +87,20 @@ ContentPage {
             spacing: 20
             Layout.topMargin: 10
             Layout.bottomMargin: 10
-            IconImage {
-                implicitSize: 80
-                source: Quickshell.iconPath("rury")
+            ClippingRectangle {
+                implicitWidth: 80
+                implicitHeight: 80
+                radius: width / 2
+                color: "transparent"
+                Image {
+                    anchors.fill: parent
+                    source: Qt.resolvedUrl(Quickshell.shellPath("assets/icons/rury.png"))
+                    fillMode: Image.PreserveAspectCrop
+                    sourceSize.width: 160
+                    sourceSize.height: 160
+                    smooth: true
+                    asynchronous: true
+                }
             }
             ColumnLayout {
                 Layout.alignment: Qt.AlignVCenter
