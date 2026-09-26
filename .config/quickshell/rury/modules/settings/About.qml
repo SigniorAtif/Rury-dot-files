@@ -101,6 +101,19 @@ ContentPage {
                     smooth: true
                     asynchronous: true
                 }
+
+                MouseArea {
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    // StyledToolTip looks for `hovered` on its parent.
+                    property bool hovered: containsMouse
+                    onClicked: Qt.openUrlExternally("https://github.com/SigniorAtif")
+
+                    StyledToolTip {
+                        text: Translation.tr("github.com/SigniorAtif")
+                    }
+                }
             }
             ColumnLayout {
                 Layout.alignment: Qt.AlignVCenter
@@ -131,6 +144,13 @@ ContentPage {
             Layout.fillWidth: true
             spacing: 5
 
+            RippleButtonWithIcon {
+                materialIcon: "folder_code"
+                mainText: Translation.tr("This repo")
+                onClicked: {
+                    Qt.openUrlExternally("https://github.com/SigniorAtif/Rury-dot-files")
+                }
+            }
             RippleButtonWithIcon {
                 materialIcon: "code"
                 mainText: Translation.tr("Upstream project")
