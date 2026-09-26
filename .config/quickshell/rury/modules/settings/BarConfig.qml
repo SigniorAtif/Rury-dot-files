@@ -61,7 +61,7 @@ ContentPage {
             }
             ContentSubsection {
                 title: Translation.tr("Automatically hide")
-                Layout.fillWidth: false
+                Layout.fillWidth: true
 
                 ConfigSelectionArray {
                     currentValue: Config.options.bar.autoHide.enable
@@ -117,7 +117,7 @@ ContentPage {
 
             ContentSubsection {
                 title: Translation.tr("Group style")
-                Layout.fillWidth: false
+                Layout.fillWidth: true
 
                 ConfigSelectionArray {
                     currentValue: Config.options.bar.borderless
