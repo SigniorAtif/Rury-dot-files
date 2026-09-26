@@ -80,7 +80,7 @@
       "workspaceZoom": 1
     },
     "thumbnailPath": "",
-    "wallpaperPath": "/home/atifahmed/git-clones/walls/1Generated/44.jpg",
+    "wallpaperPath": "/home/atifahmed/git-clones/walls/mountain/a_castle_on_a_hill_with_fog_with_Eltz_Castle_in_the_background.jpg",
     "widgets": {
       "clock": {
         "cookie": {
@@ -268,7 +268,7 @@
       "enable": false
     },
     "night": {
-      "automatic": false,
+      "automatic": true,
       "colorTemperature": 4951,
       "from": "19:00",
       "to": "06:30"
@@ -332,7 +332,7 @@
     "rows": 2,
     "scale": 0.18
   },
-  "panelFamily": "ii",
+  "panelFamily": "rury",
   "policies": {
     "ai": 1,
     "weeb": 1

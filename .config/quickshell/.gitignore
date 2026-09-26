@@ -2,3 +2,5 @@
 .swarm/
 ruvector.db
 .code-review-graph/
+
+config.json.bak

@@ -3,7 +3,7 @@ hl.bind("CTRL+SUPER+ALT+Slash", hl.dsp.exec_cmd("xdg-open ~/.config/hypr/custom/
 -- Ported from Fedora setup --
 
 -- Edit shell config
-hl.bind("CTRL+SUPER+Slash", hl.dsp.exec_cmd("xdg-open ~/.config/illogical-impulse/config.json"), { description = "Edit shell config" })
+hl.bind("CTRL+SUPER+Slash", hl.dsp.exec_cmd("xdg-open ~/.config/rury/config.json"), { description = "Edit shell config" })
 
 -- Send window to workspace silently with Super+Ctrl+number (Fedora used this instead of Super+Alt)
 for i = 1, 10 do
