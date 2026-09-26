@@ -16,6 +16,18 @@ TabButton {
     property bool showToggledHighlight: true
     readonly property real visualWidth: root.expanded ? root.baseSize + 20 + itemText.implicitWidth : root.baseSize
 
+    // The rail decides whether it is expanded from the window width, which is
+    // not final when the button is created. Hold the anchor transitions back
+    // until the first layout has settled, so the button does not animate out
+    // of its collapsed arrangement every time the window opens.
+    property bool transitionsEnabled: false
+    Component.onCompleted: settleTimer.start()
+    Timer {
+        id: settleTimer
+        interval: 300
+        onTriggered: root.transitionsEnabled = true
+    }
+
     property real baseSize: 56
     property real baseHighlightHeight: 32
     property real highlightCollapsedTopMargin: 8
@@ -71,6 +83,7 @@ TabButton {
                 }
             }
             transitions: Transition {
+                enabled: root.transitionsEnabled
                 AnchorAnimation {
                     duration: Appearance.animation.elementMoveFast.duration
                     easing.type: Appearance.animation.elementMoveFast.type
@@ -135,6 +148,7 @@ TabButton {
                 }
             }
             transitions: Transition {
+                enabled: root.transitionsEnabled
                 AnchorAnimation {
                     duration: Appearance.animation.elementMoveFast.duration
                     easing.type: Appearance.animation.elementMoveFast.type
