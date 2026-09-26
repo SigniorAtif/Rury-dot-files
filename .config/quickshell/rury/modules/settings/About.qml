@@ -139,13 +139,13 @@ ContentPage {
                     property real reveal: 0
 
                     readonly property var lines: [
-                        "Maintained by me, approved by rury",
-                        "rury's, technically",
+                        "Maintained by me, approved by Rury",
+                        "Rury's, technically",
                         "Personal Hyprland desktop \u2014 hers too",
                         "Not personal, actually",
                         "Still her favourite logo",
-                        "Now with 100% more rury",
-                        "rury-certified",
+                        "Now with 100% more Rury",
+                        "Rury-certified",
                         "Compiles faster when she's online"
                     ]
 
