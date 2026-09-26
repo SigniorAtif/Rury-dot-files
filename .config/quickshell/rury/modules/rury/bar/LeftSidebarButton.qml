@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Widgets
+import Qt5Compat.GraphicalEffects
 import qs
 import qs.services
 import qs.modules.common
@@ -15,6 +16,12 @@ RippleButton {
     // as-is and clipped to a circle. Anything else is a symbolic icon name.
     readonly property string topLeftIcon: Config.options.bar.topLeftIcon
     readonly property bool pictureIcon: root.topLeftIcon.includes(".")
+
+    // A GitHub avatar wins when one is cached; the configured icon stays as
+    // the fallback for a first run with nothing fetched yet.
+    readonly property bool avatarWanted: Config.options.bar.githubAvatar.enable
+        && Config.options.bar.githubAvatar.user !== ""
+    readonly property bool avatarShown: root.avatarWanted && githubAvatar.loaded
 
     property bool aiChatEnabled: Config.options.policies.ai !== 0
     property bool translatorEnabled: Config.options.sidebar.translator.enable
@@ -34,6 +41,18 @@ RippleButton {
 
     onPressed: {
         GlobalStates.sidebarLeftOpen = !GlobalStates.sidebarLeftOpen;
+    }
+
+    // Right click pins the icon settings into the shared bar popout.
+    altAction: () => BarPopoutState.togglePin(iconPopup)
+
+    TopLeftIconPopup {
+        id: iconPopup
+        // BarPopoutHost lines the shared panel up over this item; with no
+        // target it skips the popup entirely and nothing is ever drawn.
+        hoverTarget: root
+        active: false // Right click only, so hovering must not open it
+        onRefreshRequested: githubAvatar.refresh()
     }
 
     Connections {
@@ -65,9 +84,26 @@ RippleButton {
         width: 19.5
         height: 19.5
 
+        GithubAvatar {
+            id: githubAvatar
+            anchors.fill: parent
+            visible: root.avatarShown
+            user: root.avatarWanted ? Config.options.bar.githubAvatar.user : ""
+            refreshHours: Config.options.bar.githubAvatar.refreshHours
+            pixelSize: 128
+            layer.enabled: true
+            layer.effect: OpacityMask {
+                maskSource: Rectangle {
+                    width: githubAvatar.width
+                    height: githubAvatar.height
+                    radius: width / 2
+                }
+            }
+        }
+
         Loader {
             anchors.fill: parent
-            active: !root.pictureIcon
+            active: !root.pictureIcon && !root.avatarShown
             sourceComponent: CustomIcon {
                 source: root.topLeftIcon == 'distro' ? SystemInfo.distroIcon : `${root.topLeftIcon}-symbolic`
                 colorize: true
@@ -77,7 +113,7 @@ RippleButton {
 
         Loader {
             anchors.fill: parent
-            active: root.pictureIcon
+            active: root.pictureIcon && !root.avatarShown
             sourceComponent: ClippingRectangle {
                 radius: width / 2
                 color: "transparent"
