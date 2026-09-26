@@ -48,6 +48,10 @@ RippleButton {
 
     TopLeftIconPopup {
         id: iconPopup
+        // BarPopoutHost lines the shared panel up over this item; with no
+        // target it skips the popup entirely and nothing is ever drawn.
+        hoverTarget: root
+        active: false // Right click only, so hovering must not open it
         onRefreshRequested: githubAvatar.refresh()
     }
 
