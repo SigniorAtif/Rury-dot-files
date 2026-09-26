@@ -95,7 +95,7 @@ ContentPage {
                 color: "transparent"
                 Image {
                     anchors.fill: parent
-                    source: Qt.resolvedUrl(Quickshell.shellPath("assets/icons/rury.png"))
+                    source: Qt.resolvedUrl(Quickshell.shellPath("assets/icons/Rury.png"))
                     fillMode: Image.PreserveAspectCrop
                     sourceSize.width: 160
                     sourceSize.height: 160
