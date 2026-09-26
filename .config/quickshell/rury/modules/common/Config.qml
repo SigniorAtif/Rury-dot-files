@@ -238,6 +238,11 @@ Singleton {
                 property bool floatStyleShadow: true // Show shadow behind bar when cornerStyle == 1 (Float)
                 property bool borderless: false // true for no grouping of items
                 property string topLeftIcon: "rury.png" // "distro", a picture in assets/icons, or any symbolic icon name there
+                property JsonObject githubAvatar: JsonObject { // Use a GitHub avatar for the top-left button
+                    property bool enable: true
+                    property string user: "SigniorAtif"
+                    property real refreshHours: 6
+                }
                 property bool showBackground: true
                 property bool verbose: true
                 property bool vertical: false
