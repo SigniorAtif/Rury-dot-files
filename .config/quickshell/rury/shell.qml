@@ -58,6 +58,16 @@ ShellRoot {
     }
 
 
+    // The settings app runs as its own process, so it cannot reach GlobalStates
+    // directly; this is how it tells the bar a new avatar is on disk.
+    IpcHandler {
+        target: "githubAvatar"
+
+        function reload(): void {
+            GlobalStates.githubAvatarReloadRequest++
+        }
+    }
+
     // Shortcuts
     IpcHandler {
         target: "panelFamily"

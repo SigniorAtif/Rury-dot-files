@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import qs
 import qs.modules.common
 import qs.modules.common.functions
 
@@ -32,6 +33,14 @@ Item {
     // A new username is a new picture, so go and get it rather than waiting
     // for the next scheduled fetch.
     onUserChanged: root.refresh()
+
+    // Something else has written a new picture into the cache.
+    Connections {
+        target: GlobalStates
+        function onGithubAvatarReloadRequestChanged() {
+            root.reload(incoming);
+        }
+    }
 
     // Qt keeps images keyed by url, and the path never changes, so clearing
     // the source first is what forces a re-read from disk.
