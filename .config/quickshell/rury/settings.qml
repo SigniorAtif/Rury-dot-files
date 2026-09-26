@@ -238,6 +238,11 @@ ApplicationWindow {
                     anchors.fill: parent
                     opacity: 1.0
 
+                    // Compile the page off the render thread so the window and
+                    // the nav rail paint immediately instead of waiting for the
+                    // whole page tree on a cold start.
+                    asynchronous: true
+
                     active: Config.ready
                     Component.onCompleted: {
                         source = root.pages[0].component
