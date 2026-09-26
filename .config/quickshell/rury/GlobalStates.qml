@@ -11,6 +11,7 @@ Singleton {
     id: root
     property bool barOpen: true
     property bool crosshairOpen: false
+    property int githubAvatarReloadRequest: 0 // Bumped to make the top-left icon re-read its cache
     property bool sidebarLeftOpen: false
     property bool sidebarRightOpen: false
     property bool mediaControlsOpen: false
