@@ -1,11 +1,26 @@
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
+import Quickshell.Io
+import qs
 import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
 
 ContentPage {
+    id: root
     forceWidth: true
+
+    // The bar runs under a named config; the settings app does not, so it has
+    // to be named explicitly to talk to it.
+    readonly property string shellConfigName: Quickshell.env("qsConfig") || "rury"
+
+    // Accepts a bare username or a full profile URL, and keeps the username.
+    function normalizeUser(value: string): string {
+        const trimmed = value.trim().replace(/\/+$/, "");
+        const match = trimmed.match(/github\.com\/([^\/?#]+)/i);
+        return match ? match[1] : trimmed;
+    }
 
     ContentSection {
         icon: "notifications"
@@ -61,7 +76,7 @@ ContentPage {
             }
             ContentSubsection {
                 title: Translation.tr("Automatically hide")
-                Layout.fillWidth: false
+                Layout.fillWidth: true
 
                 ConfigSelectionArray {
                     currentValue: Config.options.bar.autoHide.enable
@@ -117,7 +132,7 @@ ContentPage {
 
             ContentSubsection {
                 title: Translation.tr("Group style")
-                Layout.fillWidth: false
+                Layout.fillWidth: true
 
                 ConfigSelectionArray {
                     currentValue: Config.options.bar.borderless
@@ -136,6 +151,198 @@ ContentPage {
                             value: true
                         }
                     ]
+                }
+            }
+        }
+    }
+
+    ContentSection {
+        icon: "account_circle"
+        title: Translation.tr("Top-left icon")
+
+        ContentSubsection {
+            title: Translation.tr("Source")
+
+            ConfigSelectionArray {
+                currentValue: Config.options.bar.githubAvatar.enable
+                onSelected: newValue => {
+                    Config.options.bar.githubAvatar.enable = newValue;
+                }
+                options: [
+                    {
+                        displayName: Translation.tr("Picture"),
+                        icon: "image",
+                        value: false
+                    },
+                    {
+                        displayName: Translation.tr("GitHub"),
+                        icon: "cloud_download",
+                        value: true
+                    }
+                ]
+            }
+        }
+
+        ContentSubsection {
+            visible: !Config.options.bar.githubAvatar.enable
+            title: Translation.tr("Picture")
+
+            MaterialTextArea {
+                Layout.fillWidth: true
+                placeholderText: Translation.tr("e.g. rury.png")
+                text: Config.options.bar.topLeftIcon
+                wrapMode: TextEdit.Wrap
+                onTextChanged: {
+                    Qt.callLater(() => {
+                        Config.options.bar.topLeftIcon = text;
+                    });
+                }
+            }
+
+            StyledText {
+                Layout.leftMargin: 10
+                Layout.fillWidth: true
+                color: Appearance.colors.colSubtext
+                font.pixelSize: Appearance.font.pixelSize.smallie
+                wrapMode: Text.Wrap
+                text: Translation.tr("A file in the shell's assets/icons folder, or a symbolic icon name from it. \"distro\" uses your distro's logo.")
+            }
+        }
+
+        ContentSubsection {
+            visible: Config.options.bar.githubAvatar.enable
+            title: Translation.tr("GitHub profile")
+
+            MaterialTextArea {
+                id: githubUserField
+                Layout.fillWidth: true
+                rightPadding: fetchButton.implicitWidth + 16
+                placeholderText: Translation.tr("Username or profile URL")
+                text: Config.options.bar.githubAvatar.user
+                wrapMode: TextEdit.Wrap
+                onTextChanged: {
+                    Qt.callLater(() => {
+                        Config.options.bar.githubAvatar.user = text.trim();
+                    });
+                }
+
+                // Normalise once the field is done being typed in, so pasting a
+                // profile URL works without rewriting it mid-keystroke.
+                onActiveFocusChanged: {
+                    if (githubUserField.activeFocus)
+                        return;
+                    const cleaned = root.normalizeUser(githubUserField.text);
+                    if (cleaned !== githubUserField.text)
+                        githubUserField.text = cleaned;
+                }
+
+                RippleButton {
+                    id: fetchButton
+                    anchors.right: parent.right
+                    anchors.rightMargin: 8
+                    anchors.verticalCenter: parent.verticalCenter
+                    implicitWidth: 36
+                    implicitHeight: 36
+                    buttonRadius: Appearance.rounding.full
+
+                    // idle | running | changed | unchanged | offline
+                    property string fetchState: "idle"
+                    enabled: fetchButton.fetchState !== "running"
+                    onFetchStateChanged: {
+                        if (fetchButton.fetchState !== "running")
+                            fetchIcon.rotation = 0;
+                    }
+
+                    downAction: () => {
+                        resetTimer.stop();
+                        fetchButton.fetchState = "running";
+                        fetchProcess.running = true;
+                    }
+
+                    contentItem: MaterialSymbol {
+                        id: fetchIcon
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        iconSize: Appearance.font.pixelSize.larger
+                        text: {
+                            if (fetchButton.fetchState === "offline")
+                                return "cloud_off";
+                            if (fetchButton.fetchState === "changed")
+                                return "check";
+                            if (fetchButton.fetchState === "unchanged")
+                                return "done_all";
+                            return "refresh";
+                        }
+                        color: fetchButton.fetchState === "offline" ?
+                            Appearance.m3colors.m3error : Appearance.colors.colOnLayer1
+
+                        RotationAnimation on rotation {
+                            running: fetchButton.fetchState === "running"
+                            loops: Animation.Infinite
+                            from: 0
+                            to: 360
+                            duration: 900
+                        }
+                    }
+
+                    StyledToolTip {
+                        text: {
+                            if (fetchButton.fetchState === "running")
+                                return Translation.tr("Fetching…");
+                            if (fetchButton.fetchState === "changed")
+                                return Translation.tr("Got a new picture");
+                            if (fetchButton.fetchState === "unchanged")
+                                return Translation.tr("Already up to date");
+                            if (fetchButton.fetchState === "offline")
+                                return Translation.tr("Could not reach GitHub");
+                            return Translation.tr("Fetch now");
+                        }
+                    }
+
+                    Process {
+                        id: fetchProcess
+                        command: ["bash", Quickshell.shellPath("scripts/github-avatar.sh"),
+                            Config.options.bar.githubAvatar.user, "128"]
+                        stdout: SplitParser {
+                            onRead: data => {
+                                const result = data.trim();
+                                fetchButton.fetchState = ["changed", "unchanged", "offline"].includes(result) ?
+                                    result : "offline";
+                                // The bar is a different process, so it has to be told.
+                                if (result === "changed")
+                                    Quickshell.execDetached(["qs", "-c", root.shellConfigName,
+                                        "ipc", "call", "githubAvatar", "reload"]);
+                                resetTimer.restart();
+                            }
+                        }
+                    }
+
+                    Timer {
+                        id: resetTimer
+                        interval: 2500
+                        onTriggered: fetchButton.fetchState = "idle"
+                    }
+                }
+            }
+
+            StyledText {
+                Layout.leftMargin: 10
+                Layout.fillWidth: true
+                color: Appearance.colors.colSubtext
+                font.pixelSize: Appearance.font.pixelSize.smallie
+                wrapMode: Text.Wrap
+                text: Translation.tr("Cached, so it still shows while you are offline")
+            }
+
+            ConfigSpinBox {
+                icon: "av_timer"
+                text: Translation.tr("Check for a new one every (h)")
+                value: Config.options.bar.githubAvatar.refreshHours
+                from: 1
+                to: 168
+                stepSize: 1
+                onValueChanged: {
+                    Config.options.bar.githubAvatar.refreshHours = value;
                 }
             }
         }
