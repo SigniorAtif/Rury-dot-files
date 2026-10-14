@@ -23,6 +23,58 @@ ContentPage {
         }
     }
 
+    Process {
+        id: saveWallProc
+        // WallpaperUtils.isNsfw says which of the two collections it belongs in
+        readonly property bool currentIsNsfw: WallpaperUtils.isNsfw(Config.options.background.wallpaperPath)
+        readonly property string destination: currentIsNsfw ? Directories.booruDownloadsNsfw : Directories.classworkWallpapers
+        property string message: ""
+        command: ["bash", `${Directories.scriptPath}/colors/random/save_wallpaper.sh`, saveWallProc.destination, FileUtils.trimFileProtocol(Config.options.background.wallpaperPath)]
+        stdout: SplitParser {
+            onRead: data => {
+                saveWallProc.message = data.trim();
+            }
+        }
+        stderr: SplitParser {
+            onRead: data => {
+                saveWallProc.message = data.trim();
+            }
+        }
+        onExited: exitCode => {
+            Quickshell.execDetached(["notify-send", exitCode === 0 ? Translation.tr("Wallpaper saved") : Translation.tr("Couldn't save wallpaper"), saveWallProc.message, "-a", "Shell"]);
+            saveWallProc.message = "";
+            savedCheckProc.recheck();
+        }
+    }
+
+    Process {
+        id: savedCheckProc
+        // The file the current wallpaper is already saved as in its destination, "" if it isn't
+        property string savedAs: ""
+        readonly property bool alreadySaved: savedAs.length > 0
+        command: ["bash", `${Directories.scriptPath}/colors/random/save_wallpaper.sh`, "--check", saveWallProc.destination, FileUtils.trimFileProtocol(Config.options.background.wallpaperPath)]
+        stdout: StdioCollector {
+            onStreamFinished: savedCheckProc.savedAs = text.trim()
+        }
+        // Deferred so the command has picked up the new wallpaper and destination first
+        function recheck() {
+            Qt.callLater(() => {
+                savedCheckProc.running = false;
+                savedCheckProc.running = true;
+            });
+        }
+    }
+
+    Connections {
+        target: Config.options.background
+        function onWallpaperPathChanged() {
+            savedCheckProc.recheck();
+        }
+    }
+
+
+    Component.onCompleted: savedCheckProc.recheck()
+
     component SmallLightDarkPreferenceButton: RippleButton {
         id: smallLightDarkPreferenceButton
         required property bool dark
@@ -81,6 +133,25 @@ ContentPage {
                             height: 200
                             radius: Appearance.rounding.normal
                         }
+                    }
+                }
+
+                // Sits on the preview because it acts on the wallpaper shown in it
+                RippleButtonWithIcon {
+                    anchors {
+                        right: parent.right
+                        bottom: parent.bottom
+                        margins: 8
+                    }
+                    enabled: !saveWallProc.running && !randomWallProc.running
+                    buttonRadius: Appearance.rounding.full
+                    materialIcon: savedCheckProc.alreadySaved ? "bookmark_added" : "bookmark_add"
+                    mainText: saveWallProc.running ? Translation.tr("Saving...") : savedCheckProc.alreadySaved ? Translation.tr("Already saved") : Translation.tr("Save to %1").arg(FileUtils.folderNameForPath(saveWallProc.destination))
+                    onClicked: {
+                        saveWallProc.running = true;
+                    }
+                    StyledToolTip {
+                        text: savedCheckProc.alreadySaved ? Translation.tr("Already in your collection as %1\n%2").arg(FileUtils.fileNameForPath(savedCheckProc.savedAs)).arg(saveWallProc.destination) : Translation.tr("Keep the current wallpaper in your collection\n%1").arg(saveWallProc.destination)
                     }
                 }
             }
