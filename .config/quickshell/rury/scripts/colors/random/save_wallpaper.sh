@@ -65,6 +65,9 @@ done
 destPath="$destDir/$serial.$ext"
 
 if cp -n "$wallpaperPath" "$destPath"; then
+    # A local private/ setup can keep notes on each save (not part of this repo)
+    privateMeta="${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/rury/private/scripts/booru_meta.sh"
+    [ -x "$privateMeta" ] && "$privateMeta" sidecar "$destPath"
     echo "Saved to $destPath"
 else
     echo "Failed to save to $destPath" >&2

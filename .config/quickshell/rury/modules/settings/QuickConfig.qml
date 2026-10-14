@@ -157,19 +157,26 @@ ContentPage {
             }
 
             ColumnLayout {
-                RippleButtonWithIcon {
-                    enabled: !randomWallProc.running
+                RowLayout {
                     visible: Config.options.policies.weeb === 1
                     Layout.fillWidth: true
-                    buttonRadius: Appearance.rounding.small
-                    materialIcon: "ifl"
-                    mainText: randomWallProc.running ? Translation.tr("Be patient...") : Translation.tr("Random: Konachan")
-                    onClicked: {
-                        randomWallProc.scriptPath = `${Directories.scriptPath}/colors/random/random_konachan_wall.sh`;
-                        randomWallProc.running = true;
+                    RippleButtonWithIcon {
+                        enabled: !randomWallProc.running
+                        Layout.fillWidth: true
+                        buttonRadius: Appearance.rounding.small
+                        materialIcon: "ifl"
+                        mainText: randomWallProc.running ? Translation.tr("Be patient...") : Translation.tr("Random: Konachan")
+                        onClicked: {
+                            randomWallProc.scriptPath = `${Directories.scriptPath}/colors/random/random_konachan_wall.sh`;
+                            randomWallProc.running = true;
+                        }
+                        StyledToolTip {
+                            text: Translation.tr("Random SFW Anime wallpaper from Konachan\nImage is saved to ~/Pictures/Wallpapers")
+                        }
                     }
-                    StyledToolTip {
-                        text: Translation.tr("Random SFW Anime wallpaper from Konachan\nImage is saved to ~/Pictures/Wallpapers")
+                    // Local-only extras from private/, which isn't part of this repo; nothing loads without it
+                    Loader {
+                        source: Quickshell.shellPath("private/settings.qml")
                     }
                 }
                 RippleButtonWithIcon {

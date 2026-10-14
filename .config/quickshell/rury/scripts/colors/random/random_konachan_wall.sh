@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# Random SFW Konachan wallpaper. A local private/ setup (not part of this repo) can take
+# over with its own fetch; without one, this is the plain upstream fetch below.
+privateFetch="${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/rury/private/scripts/random_booru_wall.sh"
+[ -x "$privateFetch" ] && exec "$privateFetch" --site konachan
 
 get_pictures_dir() {
     if command -v xdg-user-dir &> /dev/null; then
