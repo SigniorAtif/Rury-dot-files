@@ -19,3 +19,9 @@ end
 -- Alt-Tab window cycler (non-visual)
 hl.bind("ALT + Tab", hl.dsp.window.cycle_next(), { description = "Window: Cycle next" })
 hl.bind("ALT + SHIFT + Tab", hl.dsp.window.cycle_next({ next = false }), { description = "Window: Cycle previous" })
+
+-- Local-only binds from the shell's private/ folder, which isn't part of this repo
+local privateBinds = HOME .. "/.config/quickshell/rury/private/hypr.lua"
+if is_file_exists(privateBinds) then
+    dofile(privateBinds)
+end

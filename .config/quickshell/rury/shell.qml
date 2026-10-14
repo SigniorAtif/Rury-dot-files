@@ -58,6 +58,13 @@ ShellRoot {
     }
 
 
+    // Local-only additions from private/, which isn't part of this repo; nothing loads without it
+    Loader {
+        active: Config.ready
+        source: Quickshell.shellPath("private/shell.qml")
+    }
+
+
     // The settings app runs as its own process, so it cannot reach GlobalStates
     // directly; this is how it tells the bar a new avatar is on disk.
     IpcHandler {
