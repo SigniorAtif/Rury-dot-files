@@ -1,0 +1,174 @@
+/*
+ * Fixed palette: Material Theme Ocean High Contrast (dark) and Material
+ * Theme Lighter High Contrast (light), the VS Code themes.
+ *
+ * install.sh appends this to the rendered SigniorAtif theme and installs the
+ * result as "SigniorAtif Ocean". Same selectors and later in the file, so
+ * these win: every colour the wallpaper would set is pinned here, and the
+ * theme stays the same whatever the wallpaper.
+ */
+
+/* ── Ocean (dark) ─────────────────────────────────────────────────────── */
+
+.theme-dark {
+  --ocean-bg: #0f111a;
+  --ocean-bg-alt: #090b10;
+  --ocean-input: #1a1c25;
+  --ocean-highlight: #1f2233;
+  --ocean-hover: #292d3e;
+  --ocean-fg: #babed8;
+  --ocean-fg-bright: #eeffff;
+  --ocean-text-muted: #8f93a2;
+  --ocean-text-faint: #4b526d;
+  --ocean-guides: #3b3f51;
+  --ocean-selection: #717cb4;
+  --ocean-accent: #80cbc4;
+  --ocean-caret: #ffcc00;
+
+  --m3-source: var(--ocean-accent);
+  --accent-h: 174;
+  --accent-s: 42%;
+  --accent-l: 65%;
+
+  --m3-primary: var(--ocean-accent);
+  --m3-on-primary: var(--ocean-bg);
+  --m3-primary-container: color-mix(in oklch, var(--ocean-accent) 28%, var(--ocean-bg));
+  --m3-on-primary-container: color-mix(in oklch, var(--ocean-accent) 40%, var(--ocean-fg-bright));
+  --m3-inverse-primary: #00796b;
+
+  /* The lavender of Ocean's selection, for tabs, nav pills and chips */
+  --m3-secondary: #b2ccd6;
+  --m3-on-secondary: var(--ocean-bg);
+  --m3-secondary-container: color-mix(in oklch, var(--ocean-selection) 34%, var(--ocean-bg));
+  --m3-on-secondary-container: var(--ocean-fg-bright);
+
+  /* Ocean's yellow, for highlights, inline code and H3 */
+  --m3-tertiary: #ffcb6b;
+  --m3-on-tertiary: var(--ocean-bg);
+  --m3-tertiary-container: color-mix(in oklch, #ffcb6b 32%, var(--ocean-bg));
+  --m3-on-tertiary-container: color-mix(in oklch, #ffcb6b 30%, var(--ocean-fg-bright));
+
+  --m3-error: #f07178;
+  --m3-on-error: var(--ocean-bg);
+  --m3-error-container: color-mix(in oklch, #f07178 26%, var(--ocean-bg));
+  --m3-on-error-container: #ffdadb;
+
+  --m3-surface: var(--ocean-bg);
+  --m3-surface-dim: var(--ocean-bg-alt);
+  --m3-surface-bright: var(--ocean-hover);
+  --m3-surface-container-lowest: var(--ocean-bg-alt);
+  --m3-surface-container-low: #141722;
+  --m3-surface-container: var(--ocean-input);
+  --m3-surface-container-high: var(--ocean-highlight);
+  --m3-surface-container-highest: var(--ocean-hover);
+  --m3-on-surface: var(--ocean-fg);
+  --m3-on-surface-variant: var(--ocean-text-muted);
+  --m3-outline: var(--ocean-text-faint);
+  --m3-outline-variant: var(--ocean-guides);
+  --m3-inverse-surface: var(--ocean-fg);
+  --m3-inverse-on-surface: var(--ocean-bg);
+  --m3-shadow: #000000;
+  --m3-scrim: #000000;
+
+  /* VS Code's layout: the darker shade frames a lighter editor */
+  --rury-frame: var(--ocean-bg-alt);
+  --rury-card: var(--ocean-bg);
+  --rury-raised: #141722;
+  --rury-raised-2: var(--ocean-highlight);
+  --rury-shadow-strength: 55%;
+
+  --rury-red: #f07178;
+  --rury-orange: #f78c6c;
+  --rury-yellow: #ffcb6b;
+  --rury-green: #c3e88d;
+  --rury-cyan: #89ddff;
+  --rury-blue: #82aaff;
+  --rury-purple: #c792ea;
+  --rury-pink: #ff9cac;
+
+  --caret-color: var(--ocean-caret);
+  --text-selection: color-mix(in srgb, var(--ocean-selection) 45%, transparent);
+}
+
+/* ── Lighter (light) ──────────────────────────────────────────────────── */
+
+/* Lighter's own greys are too faint to read prose in, so text uses the
+   deeper end of the same blue-grey family. */
+.theme-light {
+  --lighter-accent: #00796b;
+
+  --m3-source: #80cbc4;
+  --accent-h: 174;
+  --accent-s: 100%;
+  --accent-l: 24%;
+
+  --m3-primary: var(--lighter-accent);
+  --m3-on-primary: #ffffff;
+  --m3-primary-container: #b2dfdb;
+  --m3-on-primary-container: #00413a;
+  --m3-inverse-primary: #80cbc4;
+
+  --m3-secondary: #5c6698;
+  --m3-on-secondary: #ffffff;
+  --m3-secondary-container: #e3e6f4;
+  --m3-on-secondary-container: #2f3763;
+
+  --m3-tertiary: #a86400;
+  --m3-on-tertiary: #ffffff;
+  --m3-tertiary-container: #ffecb3;
+  --m3-on-tertiary-container: #5b3c00;
+
+  --m3-error: #e53935;
+  --m3-on-error: #ffffff;
+  --m3-error-container: #ffcdd2;
+  --m3-on-error-container: #8e1414;
+
+  --m3-surface: #fafafa;
+  --m3-surface-dim: #e4e9ec;
+  --m3-surface-bright: #ffffff;
+  --m3-surface-container-lowest: #ffffff;
+  --m3-surface-container-low: #f6f8f9;
+  --m3-surface-container: #eef1f3;
+  --m3-surface-container-high: #e7ebee;
+  --m3-surface-container-highest: #dfe5e8;
+  --m3-on-surface: #263238;
+  --m3-on-surface-variant: #546e7a;
+  --m3-outline: #90a4ae;
+  --m3-outline-variant: #cfd8dc;
+  --m3-inverse-surface: #263238;
+  --m3-inverse-on-surface: #eceff1;
+  --m3-shadow: #000000;
+  --m3-scrim: #000000;
+
+  --rury-frame: var(--m3-surface-container);
+  --rury-card: var(--m3-surface-container-lowest);
+  --rury-raised: var(--m3-surface-container-low);
+  --rury-raised-2: var(--m3-surface-container-high);
+  --rury-shadow-strength: 18%;
+
+  /* Lighter's syntax colours, darkened where they are too pale for white */
+  --rury-red:    oklch(from #e53935 min(l, 0.6) c h);
+  --rury-orange: oklch(from #f76d47 min(l, 0.6) c h);
+  --rury-yellow: oklch(from #e2931d min(l, 0.6) c h);
+  --rury-green:  oklch(from #91b859 min(l, 0.6) c h);
+  --rury-cyan:   oklch(from #39adb5 min(l, 0.6) c h);
+  --rury-blue:   oklch(from #6182b8 min(l, 0.6) c h);
+  --rury-purple: oklch(from #9c3eda min(l, 0.6) c h);
+  --rury-pink:   oklch(from #ff5370 min(l, 0.6) c h);
+
+  --caret-color: #272727;
+  --text-selection: color-mix(in srgb, #80cbc4 40%, transparent);
+}
+
+/* ── Syntax, as Material colours it ───────────────────────────────────── */
+
+.theme-dark,
+.theme-light {
+  --code-keyword: var(--rury-purple);
+  --code-operator: var(--rury-cyan);
+  --code-punctuation: var(--rury-cyan);
+  --code-property: var(--rury-red);
+  --code-tag: var(--rury-red);
+  --code-value: var(--rury-orange);
+  --code-important: var(--rury-yellow);
+}

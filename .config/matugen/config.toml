@@ -32,3 +32,8 @@ output_path = '~/.local/state/quickshell/user/generated/color.txt'
 [templates.wallpaper]
 input_path = '~/.config/matugen/templates/wallpaper.txt'
 output_path = '~/.local/state/quickshell/user/generated/wallpaper/path.txt'
+
+[templates.obsidian]
+input_path = '~/.config/matugen/templates/obsidian/theme.css'
+output_path = '~/.local/state/quickshell/user/generated/obsidian/theme.css'
+post_hook = 'bash "$HOME/.config/matugen/templates/obsidian/install.sh"'
