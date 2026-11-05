@@ -20,7 +20,6 @@ Singleton {
     property bool oskOpen: false
     property bool overlayOpen: false
     property bool overviewOpen: false
-    property bool privateFoldersHidden: false // Set by a local private/ setup: keeps its folder out of the wallpaper selector
     property bool regionSelectorOpen: false
     property bool searchOpen: false
     property bool screenLocked: false
