@@ -21,6 +21,7 @@ import qs.modules.rury.sidebarLeft
 import qs.modules.rury.sidebarRight
 import qs.modules.rury.overlay
 import qs.modules.rury.verticalBar
+import qs.modules.rury.wallpaperGallery
 import qs.modules.rury.wallpaperSelector
 
 Scope {
@@ -43,5 +44,6 @@ Scope {
     PanelLoader { component: SidebarLeft {} }
     PanelLoader { component: SidebarRight {} }
     PanelLoader { extraCondition: Config.options.bar.vertical; component: VerticalBar {} }
+    PanelLoader { component: WallpaperGallery {} }
     PanelLoader { component: WallpaperSelector {} }
 }
