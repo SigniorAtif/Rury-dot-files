@@ -174,10 +174,6 @@ ContentPage {
                             text: Translation.tr("Random SFW Anime wallpaper from Konachan\nImage is saved to ~/Pictures/Wallpapers")
                         }
                     }
-                    // Local-only extras from private/, which isn't part of this repo; nothing loads without it
-                    Loader {
-                        source: Quickshell.shellPath("private/settings.qml")
-                    }
                 }
                 RippleButtonWithIcon {
                     enabled: !randomWallProc.running

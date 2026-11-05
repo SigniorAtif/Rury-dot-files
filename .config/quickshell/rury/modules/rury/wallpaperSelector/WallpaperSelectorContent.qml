@@ -6,7 +6,6 @@ import qs.modules.common.functions
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import QtQml.Models
 import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Io
@@ -26,30 +25,9 @@ MouseArea {
     Connections {
         target: Wallpapers
         function onDirectoryChanged() {
-            root.leavePrivateFolder();
             root.updateThumbnails();
         }
     }
-
-    // A local private/ setup can ask for its folder to stay out of sight for a while
-    // (GlobalStates.privateFoldersHidden): it's left out of the grid and the quick folders,
-    // and browsing into it lands back in Wallpapers
-    readonly property string privateFolder: Directories.booruDownloads
-    function isPrivatePath(path) {
-        return GlobalStates.privateFoldersHidden && (path === root.privateFolder || path.startsWith(root.privateFolder + "/"));
-    }
-    function leavePrivateFolder() {
-        if (root.isPrivatePath(decodeURIComponent(Wallpapers.effectiveDirectory).replace(/\/+$/, "")))
-            Wallpapers.setDirectory(`${Directories.pictures}/Wallpapers`);
-    }
-    Connections {
-        target: GlobalStates
-        function onPrivateFoldersHiddenChanged() {
-            shownWallpapers.refilter();
-            root.leavePrivateFolder();
-        }
-    }
-    Component.onCompleted: leavePrivateFolder()
 
     function handleFilePasting(event) {
         const currentClipboardEntry = Cliphist.entries[0];
@@ -221,7 +199,7 @@ MouseArea {
                                 name: "Wallpapers",
                                 path: `${Directories.pictures}/Wallpapers`
                             },
-                            ...(Config.options.policies.weeb === 1 && !GlobalStates.privateFoldersHidden ? [
+                            ...(Config.options.policies.weeb === 1 ? [
                                     {
                                         icon: "favorite",
                                         name: "Homework",
@@ -305,7 +283,7 @@ MouseArea {
 
                     GridView {
                         id: grid
-                        visible: shownWallpapers.count > 0
+                        visible: Wallpapers.folderModel.count > 0
 
                         readonly property int columns: root.columns
                         readonly property int rows: Math.max(1, Math.ceil(count / columns))
@@ -331,32 +309,15 @@ MouseArea {
                         }
 
                         function activateCurrent() {
-                            if (currentIndex < 0 || currentIndex >= shownItems.count) return;
-                            root.selectWallpaperPath(shownItems.get(currentIndex).model.filePath);
+                            const filePath = grid.model.get(currentIndex, "filePath");
+                            root.selectWallpaperPath(filePath);
                         }
 
-                        model: DelegateModel {
-                            id: shownWallpapers
-                            model: Wallpapers.folderModel
-                            groups: DelegateModelGroup {
-                                id: shownItems
-                                name: "shown"
-                                includeByDefault: true
-                            }
-                            filterOnGroup: "shown"
-                            function refilter() {
-                                for (let i = 0; i < items.count; i++) {
-                                    const item = items.get(i);
-                                    item.inShown = !root.isPrivatePath(item.model.filePath);
-                                }
-                            }
-                            items.onChanged: refilter()
-                        }
+                        model: Wallpapers.folderModel
                         onModelChanged: currentIndex = 0
                         delegate: WallpaperDirectoryItem {
                             required property var modelData
-                            // Position in the grid, which leaves hidden entries out
-                            readonly property int index: DelegateModel.shownIndex
+                            required property int index
                             fileModelData: modelData
                             width: grid.cellWidth
                             height: grid.cellHeight
