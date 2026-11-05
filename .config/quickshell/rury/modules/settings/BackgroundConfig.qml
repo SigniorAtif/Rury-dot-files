@@ -147,7 +147,6 @@ ContentPage {
 
             ContentSubsection {
                 title: Translation.tr("Clock style (locked)")
-                Layout.fillWidth: false
                 ConfigSelectionArray {
                     currentValue: Config.options.background.widgets.clock.styleLocked
                     onSelected: newValue => {
