@@ -25,9 +25,7 @@ ContentPage {
 
     Process {
         id: saveWallProc
-        // WallpaperUtils.isNsfw says which of the two collections it belongs in
-        readonly property bool currentIsNsfw: WallpaperUtils.isNsfw(Config.options.background.wallpaperPath)
-        readonly property string destination: currentIsNsfw ? Directories.booruDownloadsNsfw : Directories.classworkWallpapers
+        readonly property string destination: Directories.classworkWallpapers
         property string message: ""
         command: ["bash", `${Directories.scriptPath}/colors/random/save_wallpaper.sh`, saveWallProc.destination, FileUtils.trimFileProtocol(Config.options.background.wallpaperPath)]
         stdout: SplitParser {

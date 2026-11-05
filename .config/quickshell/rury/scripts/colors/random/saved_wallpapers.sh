@@ -1,19 +1,7 @@
 # Sourced by the random wallpaper scripts so a fetch can pass over images that are
 # already in the collection the settings page's "Save to" button would put them in.
 # Boorus publish each file's md5, and save_wallpaper.sh copies byte for byte, so the
-# API's md5 is enough to tell before anything is downloaded. A saved file can also be a
-# stub, <name>.remote, a line of JSON whose md5 stands for a file kept elsewhere.
-# Expects PICTURES_DIR to be set by the script sourcing this.
-
-# Mirrors Directories.booruDownloadsNsfw / Directories.classworkWallpapers, the two
-# destinations the settings page hands save_wallpaper.sh.
-savedWallpaperDir() {
-    if [ "$1" = "nsfw" ]; then
-        echo "$PICTURES_DIR/homework/🌶️"
-    else
-        echo "$HOME/git-clones/walls/Classwork"
-    fi
-}
+# API's md5 is enough to tell before anything is downloaded.
 
 # md5 -> the saved file that has it
 declare -A savedWallpaperMd5s=()
@@ -38,13 +26,7 @@ loadSavedWallpapers() {
     local fresh=""
     while IFS=$'\t' read -r size mtime path; do
         md5="${cached["$size $mtime $path"]}"
-        if [ -z "$md5" ]; then
-            if [[ "$path" == *.remote ]]; then
-                md5=$(jq -r '.md5 // empty' "$path" 2>/dev/null)
-            else
-                md5=$(md5sum "$path" | cut -d' ' -f1)
-            fi
-        fi
+        [ -n "$md5" ] || md5=$(md5sum "$path" | cut -d' ' -f1)
         [ -n "$md5" ] || continue
         savedWallpaperMd5s["$md5"]="$path"
         fresh+="$size"$'\t'"$mtime"$'\t'"$path"$'\t'"$md5"$'\n'

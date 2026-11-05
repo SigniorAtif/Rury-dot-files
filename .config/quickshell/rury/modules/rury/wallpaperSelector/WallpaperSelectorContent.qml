@@ -199,13 +199,11 @@ MouseArea {
                                 name: "Wallpapers",
                                 path: `${Directories.pictures}/Wallpapers`
                             },
-                            ...(Config.options.policies.weeb === 1 ? [
-                                    {
-                                        icon: "favorite",
-                                        name: "Homework",
-                                        path: `${Directories.pictures}/homework`
-                                    }
-                                ] : []),]
+                            {
+                                icon: "favorite",
+                                name: "Classwork",
+                                path: Directories.classworkWallpapers
+                            },]
                         delegate: RippleButton {
                             id: quickDirButton
                             required property var modelData
