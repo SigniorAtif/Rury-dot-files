@@ -16,6 +16,17 @@ for i = 1, 10 do
     hl.bind("CTRL + SUPER + code:" .. numpadkey[i], send)
 end
 
+-- Move window to workspace and follow it there with Super+Shift+number
+for i = 1, 10 do
+    local numberkey = { 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 }
+    local numpadkey = { 87, 88, 89, 83, 84, 85, 79, 80, 81, 90 }
+    local moveFollow = function()
+        hl.dispatch(hl.dsp.window.move({ workspace = workspace_in_group(i), follow = true }))
+    end
+    hl.bind("SUPER + SHIFT + code:" .. numberkey[i], moveFollow, { description = "Window: Move to workspace " .. i .. " and follow" })
+    hl.bind("SUPER + SHIFT + code:" .. numpadkey[i], moveFollow)
+end
+
 -- Alt-Tab window cycler (non-visual)
 hl.bind("ALT + Tab", hl.dsp.window.cycle_next(), { description = "Window: Cycle next" })
 hl.bind("ALT + SHIFT + Tab", hl.dsp.window.cycle_next({ next = false }), { description = "Window: Cycle previous" })
