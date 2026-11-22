@@ -1,0 +1,12 @@
+[Unit]
+Description=SigniorAtif agent daemon (sidebar agent, tools, automations)
+Documentation=file://%h/.config/rury/agent/AGENT.md
+
+[Service]
+Type=simple
+ExecStart=%h/.config/quickshell/rury/agent/agent daemon
+Restart=on-failure
+RestartSec=3
+# llama-server children live in their own process group; stop them with the daemon
+KillMode=mixed
+TimeoutStopSec=15
