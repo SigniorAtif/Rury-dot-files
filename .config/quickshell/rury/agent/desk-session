@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# The agent's own desktop: a headless sway with no screen and no input devices, on its own dbus.
+# Apps started here can't reach Atif's Hyprland session, and the agent's cursor and keyboard are
+# sway's virtual seat, not Atif's mouse. wayvnc (started from sway.conf) lets Super+Shift+/ watch it.
+set -euo pipefail
+run="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/rury"
+conf="${RURY_DESK_CONF:-$HOME/.config/rury/agent/desk/sway.conf}"
+mkdir -p "$run"
+rm -f "$run/desk.env" "$run/desk-vnc.sock"
+
+unset WAYLAND_DISPLAY DISPLAY SWAYSOCK I3SOCK HYPRLAND_INSTANCE_SIGNATURE HYPRLAND_CMD \
+      DBUS_SESSION_BUS_ADDRESS QT_QPA_PLATFORMTHEME_QT6 DESKTOP_STARTUP_ID XDG_ACTIVATION_TOKEN
+export WLR_BACKENDS=headless
+export WLR_LIBINPUT_NO_DEVICES=1
+export XDG_CURRENT_DESKTOP=sway XDG_SESSION_DESKTOP=sway XDG_SESSION_TYPE=wayland
+export MOZ_ENABLE_WAYLAND=1 QT_QPA_PLATFORM="wayland;xcb" GDK_BACKEND="wayland,x11"
+export RURY_DESK=1
+
+exec dbus-run-session -- sway -c "$conf"
