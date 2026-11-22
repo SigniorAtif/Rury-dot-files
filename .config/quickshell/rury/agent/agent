@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# rury agent launcher: `agent daemon`, `agent ask "..."`, `agent desk view`, ...
+# The venv lives outside the shell tree; bytecode goes to ~/.cache so the QML tree stays clean.
+set -euo pipefail
+here="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
+export UV_PROJECT_ENVIRONMENT="${UV_PROJECT_ENVIRONMENT:-$HOME/.local/share/rury/agent/venv}"
+export PYTHONPYCACHEPREFIX="${PYTHONPYCACHEPREFIX:-$HOME/.cache/rury/agent/pycache}"
+export PYTHONPATH="$here${PYTHONPATH:+:$PYTHONPATH}"
+py="$UV_PROJECT_ENVIRONMENT/bin/python"
+if [[ ! -x "$py" ]]; then
+    uv sync --project "$here" --quiet >&2
+fi
+exec "$py" -m rury_agent "$@"

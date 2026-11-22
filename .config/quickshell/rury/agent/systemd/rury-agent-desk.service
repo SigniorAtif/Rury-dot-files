@@ -1,0 +1,8 @@
+[Unit]
+Description=SigniorAtif agent desk (headless sway the agent drives with its own pointer and keyboard)
+
+[Service]
+Type=simple
+ExecStart=%h/.config/quickshell/rury/agent/desk-session
+Restart=on-failure
+RestartSec=2

@@ -1,0 +1,36 @@
+# Models for the SigniorAtif agent. Plug and play:
+#   - any *.gguf dropped in /mnt/d/rury/models shows up in the model picker on its own
+#     (with vision if an mmproj-*.gguf with a matching name sits next to it)
+#   - Ollama (:11434) and LM Studio (:1234) models show up while those servers run
+#   - anything else that speaks the OpenAI API: add an entry below
+#
+# Fields: name, kind ("llama.cpp" = a GGUF the agent runs itself | "openai" = an endpoint), gguf, mmproj,
+# base_url, model, ctx, vision, tools ("native" | "json" | "auto"), key ("keyring:<name>" reads the rury
+# keyring entry apiKeys.<name>, the one the old chat's /key command writes; or "env:VAR"),
+# extra_args (llama-server flags), params (extra request fields).
+
+default = "gemma4-12b"
+
+[models.gemma4-12b]
+name = "Gemma 4 12B"
+kind = "llama.cpp"
+gguf = "/mnt/d/rury/models/Gemma-4-12B-OBLITERATED-Q4_K_M.gguf"
+mmproj = "/mnt/d/rury/models/mmproj-gemma-4-12B-it-Q8_0.gguf"
+ctx = 32768
+tools = "auto"
+
+# A MoE model with few active parameters runs several times faster on the iGPU. If it doesn't fit,
+# keep some expert layers on the CPU:
+# [models.qwen36-35b-a3b]
+# name = "Qwen3.6 35B-A3B Opus distill"
+# kind = "llama.cpp"
+# gguf = "/mnt/d/rury/models/Huihui-Qwen3.6-35B-A3B-Claude-4.6-Opus-abliterated.i1-IQ3_XXS.gguf"
+# ctx = 32768
+# extra_args = ["--n-cpu-moe", "12"]
+
+# [models.openrouter]
+# name = "DeepSeek (OpenRouter)"
+# base_url = "https://openrouter.ai/api/v1"
+# model = "deepseek/deepseek-chat"
+# key = "keyring:openrouter"
+# ctx = 128000

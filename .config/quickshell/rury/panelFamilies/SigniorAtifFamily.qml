@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 
 import qs.modules.common
+import qs.modules.rury.agentHud
 import qs.modules.rury.background
 import qs.modules.rury.bar
 import qs.modules.rury.cheatsheet
@@ -26,6 +27,7 @@ import qs.modules.rury.wallpaperSelector
 
 Scope {
     PanelLoader { extraCondition: !Config.options.bar.vertical; component: Bar {} }
+    PanelLoader { extraCondition: Config.options.agent.enable; component: AgentHud {} }
     PanelLoader { component: Background {} }
     PanelLoader { component: Cheatsheet {} }
     PanelLoader { extraCondition: Config.options.dock.enable; component: Dock {} }
