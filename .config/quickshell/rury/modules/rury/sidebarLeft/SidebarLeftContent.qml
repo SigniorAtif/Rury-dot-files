@@ -13,11 +13,14 @@ Item {
     required property var scopeRoot
     property int sidebarPadding: 10
     anchors.fill: parent
+    property bool agentEnabled: Config.options.agent.enable
     property bool aiChatEnabled: Config.options.policies.ai !== 0
     property bool translatorEnabled: Config.options.sidebar.translator.enable
     property bool animeEnabled: Config.options.policies.weeb !== 0
     property bool animeCloset: Config.options.policies.weeb === 2
+    // the agent comes first; the old chat stays as the next tab
     property var tabButtonList: [
+        ...(root.agentEnabled ? [{"icon": "smart_toy", "name": Translation.tr("Agent")}] : []),
         ...(root.aiChatEnabled ? [{"icon": "neurology", "name": Translation.tr("Intelligence")}] : []),
         ...(root.translatorEnabled ? [{"icon": "translate", "name": Translation.tr("Translator")}] : []),
         ...((root.animeEnabled && !root.animeCloset) ? [{"icon": "bookmark_heart", "name": Translation.tr("Anime")}] : [])
@@ -91,14 +94,19 @@ Item {
                 }
 
                 contentChildren: [
+                    ...(root.agentEnabled ? [agentChat.createObject()] : []),
                     ...(root.aiChatEnabled ? [aiChat.createObject()] : []),
                     ...(root.translatorEnabled ? [translator.createObject()] : []),
-                    ...((root.tabButtonList.length === 0 || (!root.aiChatEnabled && !root.translatorEnabled && root.animeCloset)) ? [placeholder.createObject()] : []),
+                    ...((root.tabButtonList.length === 0 || (!root.agentEnabled && !root.aiChatEnabled && !root.translatorEnabled && root.animeCloset)) ? [placeholder.createObject()] : []),
                     ...(root.animeEnabled ? [anime.createObject()] : []),
                 ]
             }
         }
 
+        Component {
+            id: agentChat
+            AgentChat {}
+        }
         Component {
             id: aiChat
             AiChat {}
