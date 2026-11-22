@@ -5,6 +5,9 @@ hl.bind("CTRL+SUPER+ALT+Slash", hl.dsp.exec_cmd("xdg-open ~/.config/hypr/custom/
 -- Edit shell config
 hl.bind("CTRL+SUPER+Slash", hl.dsp.exec_cmd("xdg-open ~/.config/rury/config.json"), { description = "Edit shell config" })
 
+-- SigniorAtif agent: show/hide its own desktop (starts it if needed); the viewer lives in special:agent
+hl.bind("SUPER + SHIFT + Slash", hl.dsp.exec_cmd("~/.config/quickshell/rury/agent/agent desk view"), { description = "Agent: View agent desktop" })
+
 -- Send window to workspace silently with Super+Ctrl+number (Fedora used this instead of Super+Alt)
 for i = 1, 10 do
     local numberkey = { 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 }
