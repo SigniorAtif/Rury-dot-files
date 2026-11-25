@@ -66,4 +66,4 @@ PARTICULAR PURPOSE. See the [GNU General Public License](LICENSE) for details.
 - `.config/quickshell/rury/modules/common/functions/fuzzysort.js` — MIT, Copyright (c) 2018 Stephen Kamenar
 - Google Sans Flex — SIL Open Font License 1.1
 - `requirements.txt` — the Python dependency list from upstream
-- `illogical-impulse-quickshell-git` — end-4's build of [Quickshell](https://git.outfoxxed.me/quickshell/quickshell) by outfoxxed, pinned to the API this shell targets
+- [Quickshell](https://git.outfoxxed.me/quickshell/quickshell) by outfoxxed — the shell targets v0.3.2, installed from Arch's `extra` repository

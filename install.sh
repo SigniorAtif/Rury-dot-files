@@ -81,6 +81,10 @@ PKGS_REPO=(
     ttf-jetbrains-mono-nerd
     # python build environment
     clang uv gtk4 libadwaita libsoup3 libportal-gtk4 gobject-introspection
+    # Qt modules the shell's QML imports (quickshell itself is installed below)
+    qt6-5compat qt6-imageformats qt6-multimedia qt6-positioning
+    qt6-quicktimeline qt6-sensors qt6-svg qt6-tools qt6-translations
+    qt6-virtualkeyboard qt6-wayland kirigami kdialog syntax-highlighting
 )
 
 PKGS_AUR=(
@@ -89,9 +93,8 @@ PKGS_AUR=(
     ttf-readex-pro ttf-rubik-vf ttf-twemoji
     wlogout
     bibata-cursor-theme-bin
-    # Quickshell itself. This is end-4's build, pinned to 0.1.0; the shell is
-    # written against that API, so AUR's newer quickshell-git will not work.
-    illogical-impulse-quickshell-git
+    # AVIF wallpapers
+    qt6-avif-image-plugin
 )
 
 ensure_aur_helper() {
@@ -111,6 +114,14 @@ ensure_aur_helper() {
 if [ "$DO_PACKAGES" -eq 1 ]; then
     say "Installing repository packages"
     sudo pacman -S --needed --noconfirm "${PKGS_REPO[@]}"
+
+    # Quickshell 0.3.2 from extra, the release the shell is written against.
+    # Skipped when another build already provides it: end-4's
+    # illogical-impulse-quickshell-git conflicts with it, and --noconfirm
+    # would refuse the swap.
+    if ! pacman -T quickshell >/dev/null; then
+        sudo pacman -S --needed --noconfirm quickshell
+    fi
 
     ensure_aur_helper
     say "Installing AUR packages with $AUR"
