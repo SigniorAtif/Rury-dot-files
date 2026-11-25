@@ -76,6 +76,8 @@ PKGS_REPO=(
     # widgets and utilities
     fuzzel glib2 imagemagick songrec translate-shell libqalculate
     wtype ydotool
+    # usb automount, started by hypr/custom/execs.lua
+    udiskie
     # theming and shell
     eza fish fontconfig kitty matugen starship
     ttf-jetbrains-mono-nerd
