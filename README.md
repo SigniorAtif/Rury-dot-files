@@ -8,7 +8,7 @@ notification centre and wallpaper-driven Material You theming.
 Arch Linux only.
 
 ```sh
-git clone https://github.com/<you>/dotfiles ~/dotfiles
+git clone https://github.com/SigniorAtif/Rury-dot-files ~/dotfiles
 cd ~/dotfiles
 ./install.sh
 ```
