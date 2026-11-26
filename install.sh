@@ -191,6 +191,20 @@ link_one() {
     echo "  linked   $dst"
 }
 
+# For files an app rewrites itself: copy once, then leave the app's copy alone.
+copy_if_absent() {
+    local src="$1" dst="$2"
+
+    if [ -e "$dst" ]; then
+        echo "  kept     $dst"
+        return
+    fi
+
+    mkdir -p "$(dirname "$dst")"
+    cp "$src" "$dst"
+    echo "  copied   $dst"
+}
+
 if [ "$DO_LINK" -eq 1 ]; then
     say "Linking dotfiles into ~/.config"
     link_one "$REPO/.config/hypr"            "$HOME/.config/hypr"
@@ -203,6 +217,27 @@ if [ "$DO_LINK" -eq 1 ]; then
     link_one "$REPO/.config/kitty"            "$HOME/.config/kitty"
     link_one "$REPO/.config/fish/config.fish" "$HOME/.config/fish/config.fish"
     link_one "$REPO/.config/starship.toml"    "$HOME/.config/starship.toml"
+
+    # Qt apps follow kdeglobals (QT_QPA_PLATFORMTHEME=kde). The colours in it
+    # are rewritten by kde-material-you-colors on every wallpaper change, so
+    # only the style, icon and font keys are set here.
+    link_one "$REPO/.config/kde-material-you-colors" "$HOME/.config/kde-material-you-colors"
+    copy_if_absent "$REPO/.config/darklyrc"  "$HOME/.config/darklyrc"
+    copy_if_absent "$REPO/.config/dolphinrc" "$HOME/.config/dolphinrc"
+    if command -v kwriteconfig6 >/dev/null; then
+        kg() { kwriteconfig6 --file kdeglobals --group "$1" --key "$2" "$3"; }
+        kg KDE     widgetStyle          Darkly
+        kg Icons   Theme                breeze-plus-dark
+        kg General TerminalApplication  "kitty -1"
+        kg General font                 "Google Sans Flex,11,-1,5,500,0,0,0,0,0,0,0,0,0,0,1,Medium"
+        kg General menuFont             "Google Sans Flex,10,-1,5,500,0,0,0,0,0,0,0,0,0,0,1,Medium"
+        kg General toolBarFont          "Google Sans Flex,10,-1,5,500,0,0,0,0,0,0,0,0,0,0,1,Medium"
+        kg General smallestReadableFont "Google Sans Flex,9,-1,5,500,0,0,0,0,0,0,0,0,0,0,1,Medium"
+        kg General fixed                "JetBrainsMono Nerd Font,11,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
+        echo "  set      $HOME/.config/kdeglobals style, icons and fonts"
+    else
+        echo "  skipped  kdeglobals: kwriteconfig6 not found"
+    fi
 
     [ -d "$BACKUP" ] && echo "  replaced files are in $BACKUP"
 fi
