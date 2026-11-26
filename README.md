@@ -33,6 +33,7 @@ Then log out and back in, or `hyprctl reload && qs -c rury`.
 | `.config/rury/` | live settings the shell reads and writes |
 | `.config/hypr/` | Hyprland config, in Lua |
 | `.config/matugen/` | colour templates for GTK, Qt, hyprlock, fuzzel, kitty |
+| `.config/kitty/`, `.config/fish/config.fish`, `.config/starship.toml` | the terminal: kitty running fish with the starship prompt |
 
 `~/.config` links into this repository, so changes made in the settings app
 show up here as ordinary git changes.

@@ -198,6 +198,12 @@ if [ "$DO_LINK" -eq 1 ]; then
     link_one "$REPO/.config/rury"            "$HOME/.config/rury"
     link_one "$REPO/.config/matugen"         "$HOME/.config/matugen"
 
+    # Terminal: kitty runs fish, and fish starts the starship prompt. Only
+    # config.fish is linked, since fish writes fish_variables next to it.
+    link_one "$REPO/.config/kitty"            "$HOME/.config/kitty"
+    link_one "$REPO/.config/fish/config.fish" "$HOME/.config/fish/config.fish"
+    link_one "$REPO/.config/starship.toml"    "$HOME/.config/starship.toml"
+
     [ -d "$BACKUP" ] && echo "  replaced files are in $BACKUP"
 fi
 
