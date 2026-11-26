@@ -61,6 +61,8 @@ PKGS_REPO=(
     bc coreutils cliphist cmake curl wget ripgrep jq xdg-user-dirs rsync go-yq
     # audio
     cava pavucontrol-qt wireplumber pipewire-pulse libdbusmenu-gtk3 playerctl
+    # started in service mode by hypr/hyprland/execs.lua
+    easyeffects
     # backlight and sensors
     geoclue brightnessctl ddcutil upower
     # hyprland and wayland
