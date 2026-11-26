@@ -35,6 +35,7 @@ Then log out and back in, or `hyprctl reload && qs -c rury`.
 | `.config/matugen/` | colour templates for GTK, Qt, hyprlock, fuzzel, kitty |
 | `.config/kitty/`, `.config/fish/config.fish`, `.config/starship.toml` | the terminal: kitty running fish with the starship prompt |
 | `.config/kde-material-you-colors/`, `.config/darklyrc`, `.config/dolphinrc` | Qt theming: wallpaper colours, the Darkly style, Dolphin defaults |
+| `.config/xdg-desktop-portal/`, `.config/fontconfig/`, `.config/fuzzel/`, `.config/wlogout/` | portal backends, font rendering, the fallback launcher and the logout menu |
 
 `~/.config` links into this repository, so changes made in the settings app
 show up here as ordinary git changes.

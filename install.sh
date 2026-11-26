@@ -218,6 +218,13 @@ if [ "$DO_LINK" -eq 1 ]; then
     link_one "$REPO/.config/fish/config.fish" "$HOME/.config/fish/config.fish"
     link_one "$REPO/.config/starship.toml"    "$HOME/.config/starship.toml"
 
+    # Desktop pieces Hyprland and the keybinds call on. fuzzel_theme.ini is
+    # matugen output, so only fuzzel.ini is linked.
+    link_one "$REPO/.config/xdg-desktop-portal"   "$HOME/.config/xdg-desktop-portal"
+    link_one "$REPO/.config/fontconfig/fonts.conf" "$HOME/.config/fontconfig/fonts.conf"
+    link_one "$REPO/.config/fuzzel/fuzzel.ini"    "$HOME/.config/fuzzel/fuzzel.ini"
+    link_one "$REPO/.config/wlogout"              "$HOME/.config/wlogout"
+
     # Qt apps follow kdeglobals (QT_QPA_PLATFORMTHEME=kde). The colours in it
     # are rewritten by kde-material-you-colors on every wallpaper change, so
     # only the style, icon and font keys are set here.
