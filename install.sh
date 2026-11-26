@@ -12,6 +12,7 @@ DO_PACKAGES=1
 DO_VENV=1
 DO_FONTS=1
 DO_LINK=1
+LINK=0
 WITH_LATEX=0
 
 usage() {
@@ -21,12 +22,15 @@ Usage: ./install.sh [options]
   --no-packages   skip pacman/AUR installation
   --no-venv       skip the Python environment
   --no-fonts      skip font installation
-  --no-link       skip linking the dotfiles into ~/.config
+  --no-dotfiles   skip putting the dotfiles into ~/.config
+  --link          symlink ~/.config into this repository instead of copying,
+                  for working on the dotfiles (the clone must then stay put)
   --with-latex    also build MicroTeX, for LaTeX rendering in the shell
   -h, --help      show this message
 
-Anything it would overwrite in ~/.config is moved into a timestamped
-backup directory first; nothing is deleted.
+The dotfiles are copied, so the clone can be deleted afterwards. Anything
+they would overwrite in ~/.config is moved into a timestamped backup
+directory first; nothing is deleted.
 EOF
 }
 
@@ -35,7 +39,8 @@ while [ $# -gt 0 ]; do
         --no-packages) DO_PACKAGES=0 ;;
         --no-venv)     DO_VENV=0 ;;
         --no-fonts)    DO_FONTS=0 ;;
-        --no-link)     DO_LINK=0 ;;
+        --no-dotfiles|--no-link) DO_LINK=0 ;;
+        --link)        LINK=1 ;;
         --with-latex)  WITH_LATEX=1 ;;
         -h|--help)     usage; exit 0 ;;
         *) echo "unknown option: $1" >&2; usage >&2; exit 2 ;;
@@ -173,11 +178,18 @@ if [ "$DO_FONTS" -eq 1 ]; then
 fi
 
 # --- dotfiles --------------------------------------------------------------
-link_one() {
+# Puts one file or directory from the repository in place under ~/.config:
+# a copy by default, a symlink with --link.
+place_one() {
     local src="$1" dst="$2"
 
-    # Already pointing where it should.
-    if [ -L "$dst" ] && [ "$(readlink -f "$dst")" = "$(readlink -f "$src")" ]; then
+    # Already in place.
+    if [ "$LINK" -eq 1 ]; then
+        if [ -L "$dst" ] && [ "$(readlink -f "$dst")" = "$(readlink -f "$src")" ]; then
+            echo "  ok       $dst"
+            return
+        fi
+    elif [ ! -L "$dst" ] && [ -e "$dst" ] && diff -rq "$src" "$dst" >/dev/null 2>&1; then
         echo "  ok       $dst"
         return
     fi
@@ -189,8 +201,24 @@ link_one() {
     fi
 
     mkdir -p "$(dirname "$dst")"
-    ln -s "$src" "$dst"
-    echo "  linked   $dst"
+    if [ "$LINK" -eq 1 ]; then
+        ln -s "$src" "$dst"
+        echo "  linked   $dst"
+    else
+        cp -a "$src" "$dst"
+        echo "  copied   $dst"
+    fi
+}
+
+# A copy replaces a directory wholesale, so files the desktop writes into it
+# at runtime (saved settings, wallpaper colours) are carried over from the
+# backup the copy just made.
+keep_from_backup() {
+    local rel="$1"
+
+    [ "$LINK" -eq 0 ] && [ -f "$BACKUP/$rel" ] || return 0
+    cp "$BACKUP/$rel" "$HOME/$rel"
+    echo "  kept     $HOME/$rel"
 }
 
 # For files an app rewrites itself: copy once, then leave the app's copy alone.
@@ -208,29 +236,36 @@ copy_if_absent() {
 }
 
 if [ "$DO_LINK" -eq 1 ]; then
-    say "Linking dotfiles into ~/.config"
-    link_one "$REPO/.config/hypr"            "$HOME/.config/hypr"
-    link_one "$REPO/.config/quickshell/rury" "$HOME/.config/quickshell/rury"
-    link_one "$REPO/.config/rury"            "$HOME/.config/rury"
-    link_one "$REPO/.config/matugen"         "$HOME/.config/matugen"
+    if [ "$LINK" -eq 1 ]; then
+        say "Linking dotfiles into ~/.config"
+    else
+        say "Copying dotfiles into ~/.config"
+    fi
+    place_one "$REPO/.config/hypr"            "$HOME/.config/hypr"
+    place_one "$REPO/.config/quickshell/rury" "$HOME/.config/quickshell/rury"
+    place_one "$REPO/.config/rury"            "$HOME/.config/rury"
+    place_one "$REPO/.config/matugen"         "$HOME/.config/matugen"
+    keep_from_backup .config/rury/config.json
+    keep_from_backup .config/hypr/hyprland/colors.lua
+    keep_from_backup .config/hypr/hyprlock/colors.conf
 
     # Terminal: kitty runs fish, and fish starts the starship prompt. Only
-    # config.fish is linked, since fish writes fish_variables next to it.
-    link_one "$REPO/.config/kitty"            "$HOME/.config/kitty"
-    link_one "$REPO/.config/fish/config.fish" "$HOME/.config/fish/config.fish"
-    link_one "$REPO/.config/starship.toml"    "$HOME/.config/starship.toml"
+    # config.fish is placed, since fish writes fish_variables next to it.
+    place_one "$REPO/.config/kitty"            "$HOME/.config/kitty"
+    place_one "$REPO/.config/fish/config.fish" "$HOME/.config/fish/config.fish"
+    place_one "$REPO/.config/starship.toml"    "$HOME/.config/starship.toml"
 
     # Desktop pieces Hyprland and the keybinds call on. fuzzel_theme.ini is
-    # matugen output, so only fuzzel.ini is linked.
-    link_one "$REPO/.config/xdg-desktop-portal"   "$HOME/.config/xdg-desktop-portal"
-    link_one "$REPO/.config/fontconfig/fonts.conf" "$HOME/.config/fontconfig/fonts.conf"
-    link_one "$REPO/.config/fuzzel/fuzzel.ini"    "$HOME/.config/fuzzel/fuzzel.ini"
-    link_one "$REPO/.config/wlogout"              "$HOME/.config/wlogout"
+    # matugen output, so only fuzzel.ini is placed.
+    place_one "$REPO/.config/xdg-desktop-portal"   "$HOME/.config/xdg-desktop-portal"
+    place_one "$REPO/.config/fontconfig/fonts.conf" "$HOME/.config/fontconfig/fonts.conf"
+    place_one "$REPO/.config/fuzzel/fuzzel.ini"    "$HOME/.config/fuzzel/fuzzel.ini"
+    place_one "$REPO/.config/wlogout"              "$HOME/.config/wlogout"
 
     # Qt apps follow kdeglobals (QT_QPA_PLATFORMTHEME=kde). The colours in it
     # are rewritten by kde-material-you-colors on every wallpaper change, so
     # only the style, icon and font keys are set here.
-    link_one "$REPO/.config/kde-material-you-colors" "$HOME/.config/kde-material-you-colors"
+    place_one "$REPO/.config/kde-material-you-colors" "$HOME/.config/kde-material-you-colors"
     copy_if_absent "$REPO/.config/darklyrc"  "$HOME/.config/darklyrc"
     copy_if_absent "$REPO/.config/dolphinrc" "$HOME/.config/dolphinrc"
     if command -v kwriteconfig6 >/dev/null; then
@@ -259,7 +294,16 @@ Log out and back into Hyprland, or from a running session:
     hyprctl reload
     qs -c rury
 
-The shell reads its settings from ~/.config/rury/config.json, which is a
-link into this repository, so changes you make in the settings app show up
-as ordinary git changes here.
 EOF
+if [ "$LINK" -eq 1 ]; then
+    cat <<EOF
+~/.config links into this repository, so changes you make in the settings
+app show up as ordinary git changes here. Keep the clone where it is.
+EOF
+else
+    cat <<EOF
+The dotfiles were copied into ~/.config, so this clone is no longer needed.
+To update later, clone or pull again and run ./install.sh --no-packages
+--no-venv; your shell settings and wallpaper colours are kept.
+EOF
+fi

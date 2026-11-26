@@ -14,11 +14,14 @@ cd ~/dotfiles
 ```
 
 It installs the packages, builds the Python environment, fetches the font,
-then links the config into `~/.config`. Anything it would overwrite is moved
-into a timestamped backup directory first — it never deletes.
+then copies the config into `~/.config`, so the clone can be deleted
+afterwards. Anything it would overwrite is moved into a timestamped backup
+directory first — it never deletes. Running it again to update keeps your
+shell settings and wallpaper colours.
 
 ```
 ./install.sh --no-packages    # just the dotfiles
+./install.sh --link           # symlink ~/.config into the clone, to work on the dotfiles
 ./install.sh --with-latex     # also build MicroTeX, for LaTeX rendering
 ./install.sh --help
 ```
@@ -37,8 +40,8 @@ Then log out and back in, or `hyprctl reload && qs -c rury`.
 | `.config/kde-material-you-colors/`, `.config/darklyrc`, `.config/dolphinrc` | Qt theming: wallpaper colours, the Darkly style, Dolphin defaults |
 | `.config/xdg-desktop-portal/`, `.config/fontconfig/`, `.config/fuzzel/`, `.config/wlogout/` | portal backends, font rendering, the fallback launcher and the logout menu |
 
-`~/.config` links into this repository, so changes made in the settings app
-show up here as ordinary git changes.
+With `--link`, `~/.config` links into this repository, so changes made in the
+settings app show up here as ordinary git changes.
 
 ## Origin and license
 
