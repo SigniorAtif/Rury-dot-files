@@ -164,7 +164,7 @@ if [ "$DO_FONTS" -eq 1 ]; then
 
     say "Installing the shell icon"
     mkdir -p "$HOME/.local/share/icons"
-    cp "$REPO/.config/quickshell/rury/assets/icons/rury.png" \
+    cp "$REPO/.config/quickshell/rury/assets/icons/Rury.png" \
        "$HOME/.local/share/icons/rury.png"
     command -v gtk-update-icon-cache >/dev/null &&
         gtk-update-icon-cache -f -t "$HOME/.local/share/icons" 2>/dev/null || true
