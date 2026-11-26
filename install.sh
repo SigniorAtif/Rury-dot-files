@@ -141,7 +141,7 @@ if [ "$DO_VENV" -eq 1 ]; then
     say "Building the Python environment at $VENV"
     command -v uv >/dev/null || die "uv is required for the Python environment"
     mkdir -p "$(dirname "$VENV")"
-    uv venv --python 3.12 "$VENV"
+    uv venv --clear --python 3.12 "$VENV"
     uv pip install --python "$VENV/bin/python" -r "$REPO/requirements.txt"
 fi
 
